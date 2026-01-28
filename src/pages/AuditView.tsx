@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { api } from '../services/api';
 import { useAuth } from '../context/AuthContext';
-import { ClipboardCheck, Star, MapPin, Calendar, CheckCircle2, ChevronRight, MessageSquare } from 'lucide-react';
+import { ClipboardCheck, Star, MapPin, Calendar, CheckCircle2, ChevronRight, MessageSquare, RefreshCw } from 'lucide-react';
 
 const AuditView = () => {
     const { user } = useAuth();
