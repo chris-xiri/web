@@ -6,25 +6,26 @@ import AdminView from './pages/AdminView';
 import AuditView from './pages/AuditView';
 
 function App() {
-    return (
-        <AuthProvider>
-            <BrowserRouter>
-                <Routes>
-                    <Route path="/login" element={<Login />} />
+  return (
+    <AuthProvider>
+      <BrowserRouter>
+        <Routes>
+          <Route path="/login" element={<Login />} />
 
-                    <Route element={<ProtectedRoute allowedRoles={['admin']} />}>
-                        <Route path="/admin" element={<AdminView />} />
-                    </Route>
+          <Route element={<ProtectedRoute allowedRoles={['admin']} />}>
+            <Route path="/admin" element={<AdminView />} />
+          </Route>
 
-                    <Route element={<ProtectedRoute allowedRoles={['auditor']} />}>
-                        <Route path="/audit" element={<AuditView />} />
-                    </Route>
+          <Route element={<ProtectedRoute allowedRoles={['auditor']} />}>
+            <Route path="/audit" element={<AuditView />} />
+          </Route>
 
-                    <Route path="/" element={<Navigate to="/login" replace />} />
-                </Routes>
-            </BrowserRouter>
-        </AuthProvider>
-    );
+          <Route path="/" element={<Navigate to="/login" replace />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </BrowserRouter>
+    </AuthProvider>
+  );
 }
 
 export default App;
