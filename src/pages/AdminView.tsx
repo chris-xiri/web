@@ -116,6 +116,11 @@ const AdminView = () => {
                                                             {v.phone && (
                                                                 <div className="text-xs text-slate-500 mt-0.5">{v.phone}</div>
                                                             )}
+                                                            {v.email && (
+                                                                <a href={`mailto:${v.email}`} className="text-xs text-slate-500 hover:text-xiri-accent mt-0.5 block">
+                                                                    {v.email}
+                                                                </a>
+                                                            )}
                                                         </div>
                                                     </div>
                                                 </td>

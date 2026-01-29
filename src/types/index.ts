@@ -8,6 +8,7 @@ export interface Vendor {
     rating?: number;
     website?: string;
     phone?: string;
+    email?: string;
     aiContextSummary?: string;
 }
 
