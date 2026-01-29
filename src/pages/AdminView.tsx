@@ -125,8 +125,8 @@ const AdminView = () => {
                                                     </div>
                                                 </td>
                                                 <td className="px-8 py-5">
-                                                    <div className="max-w-xs">
-                                                        <p className="text-xs text-slate-500 line-clamp-2 leading-relaxed">
+                                                    <div className="max-w-md">
+                                                        <p className="text-xs text-slate-500 leading-relaxed">
                                                             {v.aiContextSummary || "No AI summary available yet."}
                                                         </p>
                                                     </div>
