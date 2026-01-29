@@ -1,11 +1,12 @@
 import { useState } from 'react';
 import { api } from '../services/api';
-import { Search, MapPin, RefreshCw, PlusCircle, Building2, Star } from 'lucide-react';
+import { Search, MapPin, RefreshCw, PlusCircle, Building2, CheckCircle } from 'lucide-react';
+import type { Vendor } from '../types';
 
 const AdminView = () => {
     const [zipCode, setZipCode] = useState('');
     const [trade, setTrade] = useState('');
-    const [results, setResults] = useState<any[]>([]);
+    const [results, setResults] = useState<Vendor[]>([]);
     const [loading, setLoading] = useState(false);
 
     const handleScrape = async () => {
@@ -20,6 +21,23 @@ const AdminView = () => {
             alert('Scraper deployment failed. This usually happens if the live search takes longer than 10 seconds. Try a more specific trade.');
         }
         setLoading(false);
+    };
+
+    const handleApproveVendor = async (id: string, index: number) => {
+        // Optimistic UI: Update local state immediately
+        const previousResults = [...results];
+        const newResults = [...results];
+        newResults[index] = { ...newResults[index], status: 'Active' as const };
+        setResults(newResults);
+
+        try {
+            await api.updateVendor(id, { status: 'Active' });
+        } catch (error) {
+            console.error("Failed to approve vendor:", error);
+            // Rollback on error
+            setResults(previousResults);
+            alert("Failed to approve vendor. Please try again.");
+        }
     };
 
     return (
@@ -132,9 +150,20 @@ const AdminView = () => {
                                                     </div>
                                                 </td>
                                                 <td className="px-8 py-5 text-right">
-                                                    <button className="p-2 bg-slate-100 text-slate-600 rounded-lg hover:bg-xiri-success hover:text-white transition-all">
-                                                        <PlusCircle size={20} />
-                                                    </button>
+                                                    {v.status === 'Active' ? (
+                                                        <div className="inline-flex items-center gap-2 px-3 py-2 bg-green-100 text-green-700 rounded-lg text-xs font-bold">
+                                                            <CheckCircle size={16} />
+                                                            <span>Active</span>
+                                                        </div>
+                                                    ) : (
+                                                        <button
+                                                            onClick={() => handleApproveVendor(v.id!, i)}
+                                                            className="p-2 bg-slate-100 text-slate-600 rounded-lg hover:bg-xiri-success hover:text-white transition-all"
+                                                            title="Approve Vendor"
+                                                        >
+                                                            <PlusCircle size={20} />
+                                                        </button>
+                                                    )}
                                                 </td>
                                             </tr>
                                         ))}

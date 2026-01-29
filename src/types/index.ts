@@ -10,6 +10,7 @@ export interface Vendor {
     phone?: string;
     email?: string;
     aiContextSummary?: string;
+    status?: 'Raw Lead' | 'Active';
 }
 
 export interface Job {

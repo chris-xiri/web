@@ -25,5 +25,14 @@ export const api = {
             body: JSON.stringify({ jobId, rating, notes, userId }),
         });
         return response.json();
+    },
+
+    updateVendor: async (vendorId: string, updates: any) => {
+        const response = await fetch(`${API_URL}/vendors/${vendorId}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(updates),
+        });
+        return response.json();
     }
 };
