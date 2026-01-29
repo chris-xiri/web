@@ -5,6 +5,15 @@ import Login from './pages/Login';
 import AdminView from './pages/AdminView';
 import AuditView from './pages/AuditView';
 
+import { useAuth } from './context/AuthContext';
+
+const RootRedirect = () => {
+  const { user, loading } = useAuth();
+  if (loading) return null;
+  if (!user) return <Navigate to="/login" replace />;
+  return <Navigate to={user.role === 'admin' ? '/admin' : '/audit'} replace />;
+};
+
 function App() {
   return (
     <AuthProvider>
@@ -20,7 +29,7 @@ function App() {
             <Route path="/audit" element={<AuditView />} />
           </Route>
 
-          <Route path="/" element={<Navigate to="/login" replace />} />
+          <Route path="/" element={<RootRedirect />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </BrowserRouter>

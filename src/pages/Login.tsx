@@ -3,11 +3,21 @@ import { signInWithEmailAndPassword } from 'firebase/auth';
 import { useNavigate } from 'react-router-dom';
 import { auth } from '../services/firebase';
 
+import { useAuth } from '../context/AuthContext';
+import { useEffect } from 'react';
+
 const Login = () => {
+    const { user, loading } = useAuth();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
     const navigate = useNavigate();
+
+    useEffect(() => {
+        if (!loading && user) {
+            navigate(user.role === 'admin' ? '/admin' : '/audit');
+        }
+    }, [user, loading, navigate]);
 
     const handleLogin = async (e: FormEvent) => {
         e.preventDefault();
