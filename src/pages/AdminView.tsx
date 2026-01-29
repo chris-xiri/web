@@ -9,10 +9,12 @@ const AdminView = () => {
     const [loading, setLoading] = useState(false);
 
     const handleScrape = async () => {
+        if (!zipCode || !trade) return;
         setLoading(true);
         try {
             const data = await api.scrapeVendors(zipCode, trade);
-            setResults(data.vendors || []);
+            // Backend returns { message, data: Vendor[] }
+            setResults(data.data || []);
         } catch (error) {
             console.error(error);
         }
@@ -26,12 +28,6 @@ const AdminView = () => {
                     <div>
                         <h1 className="text-3xl font-bold text-xiri-primary tracking-tight">Admin Control</h1>
                         <p className="text-xiri-secondary font-medium mt-1">Scale your vendor network globally.</p>
-                    </div>
-                    <div className="flex items-center gap-3">
-                        <button className="p-2.5 bg-white border border-slate-200 rounded-xl text-slate-500 hover:text-xiri-primary transition-colors">
-                            <RefreshCw size={20} />
-                        </button>
-                        <div className="w-10 h-10 bg-xiri-accent rounded-full border-2 border-white shadow-sm" />
                     </div>
                 </header>
 
@@ -96,7 +92,7 @@ const AdminView = () => {
                                     <thead>
                                         <tr className="bg-slate-50/50">
                                             <th className="px-8 py-4 text-xs font-bold text-slate-400 uppercase tracking-widest">Vendor Identity</th>
-                                            <th className="px-8 py-4 text-xs font-bold text-slate-400 uppercase tracking-widest">Reputation</th>
+                                            <th className="px-8 py-4 text-xs font-bold text-slate-400 uppercase tracking-widest">AI Summary</th>
                                             <th className="px-8 py-4 text-xs font-bold text-slate-400 uppercase tracking-widest text-right">Action</th>
                                         </tr>
                                     </thead>
@@ -109,16 +105,16 @@ const AdminView = () => {
                                                             <Building2 size={20} />
                                                         </div>
                                                         <div>
-                                                            <div className="font-bold text-xiri-primary">{v.name}</div>
-                                                            <div className="text-xs font-medium text-slate-400 uppercase tracking-tighter">{v.trade} • {zipCode}</div>
+                                                            <div className="font-bold text-xiri-primary">{v.companyName || v.name}</div>
+                                                            <div className="text-xs font-medium text-slate-400 uppercase tracking-tighter">{v.trades?.join(', ') || v.trade} • {zipCode}</div>
                                                         </div>
                                                     </div>
                                                 </td>
                                                 <td className="px-8 py-5">
-                                                    <div className="flex items-center gap-1.5 text-amber-500">
-                                                        <Star size={16} fill="currentColor" />
-                                                        <span className="font-bold text-slate-700">4.8</span>
-                                                        <span className="text-slate-400 text-xs font-medium">(24)</span>
+                                                    <div className="max-w-xs">
+                                                        <p className="text-xs text-slate-500 line-clamp-2 leading-relaxed">
+                                                            {v.aiContextSummary || "No AI summary available yet."}
+                                                        </p>
                                                     </div>
                                                 </td>
                                                 <td className="px-8 py-5 text-right">
