@@ -7,9 +7,14 @@ import { User as AppUser } from '../types';
 interface AuthContextType {
     user: AppUser | null;
     loading: boolean;
+    switchView: (mode: 'sales' | 'recruiter' | 'auditor') => void;
 }
 
-const AuthContext = createContext<AuthContextType>({ user: null, loading: true });
+const AuthContext = createContext<AuthContextType>({
+    user: null,
+    loading: true,
+    switchView: () => { }
+});
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const [user, setUser] = useState<AppUser | null>(null);
@@ -22,11 +27,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
                 const docSnap = await getDoc(docRef);
                 const userData = docSnap.exists() ? docSnap.data() : {};
 
+                // Determine default view mode based on role
+                let defaultViewMode: AppUser['viewMode'] = undefined;
+                if (userData.role === 'facility_manager') defaultViewMode = 'auditor'; // Start in Ops
+                if (userData.role === 'sales') defaultViewMode = 'sales';
+                if (userData.role === 'recruiter') defaultViewMode = 'recruiter';
+                if (userData.role === 'auditor') defaultViewMode = 'auditor';
+
                 setUser({
                     uid: firebaseUser.uid,
                     email: firebaseUser.email || '',
                     role: userData.role || 'auditor',
-                    territoryId: userData.territoryId
+                    territoryId: userData.territoryId,
+                    viewMode: defaultViewMode
                 } as AppUser);
             } else {
                 setUser(null);
@@ -35,8 +48,18 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         });
     }, []);
 
+    const switchView = (mode: 'sales' | 'recruiter' | 'auditor') => {
+        if (!user) return;
+
+        // Security check: Only allow switching if role permits
+        const allowedRoles = ['super_admin', 'facility_manager'];
+        if (allowedRoles.includes(user.role)) {
+            setUser({ ...user, viewMode: mode });
+        }
+    };
+
     return (
-        <AuthContext.Provider value={{ user, loading }}>
+        <AuthContext.Provider value={{ user, loading, switchView }}>
             {children}
         </AuthContext.Provider>
     );

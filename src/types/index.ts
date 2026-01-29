@@ -29,9 +29,12 @@ export interface Territory {
     zipCodes: string[];
 }
 
+export type UserRole = 'super_admin' | 'facility_manager' | 'sales' | 'recruiter' | 'auditor';
+
 export interface User {
     uid: string;
     email: string;
-    role: 'admin' | 'auditor';
+    role: UserRole;
     territoryId?: string;
+    viewMode?: 'sales' | 'recruiter' | 'auditor'; // For facility_manager to toggle views
 }
