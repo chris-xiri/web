@@ -1,0 +1,19 @@
+@import "tailwindcss";
+
+@theme {
+  --color-xiri-primary: #0f172a;
+  --color-xiri-secondary: #334155;
+  --color-xiri-accent: #0ea5e9;
+  --color-xiri-success: #10b981;
+  --color-xiri-warning: #f59e0b;
+  --color-xiri-danger: #ef4444;
+  --color-xiri-background: #f8fafc;
+  
+  --font-sans: "Inter", "sans-serif";
+}
+
+@layer base {
+  body {
+    @apply bg-slate-50 text-slate-900 antialiased;
+  }
+}
