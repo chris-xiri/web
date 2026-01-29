@@ -50,3 +50,56 @@ export interface RawLead {
     source: 'google_maps';
     scrapedAt: string;
 }
+
+export interface Account {
+    id?: string;
+    name: string;
+    type: 'prospect' | 'vendor';
+    industry?: string;
+    website?: string;
+    phone?: string;
+    email?: string;
+    address?: {
+        street?: string;
+        city?: string;
+        state?: string;
+        zipCode?: string;
+        fullNumber?: string;
+    };
+    sqFt?: number;
+    status: 'Active' | 'Inactive' | 'Lead' | 'Churned';
+    rating: number;
+
+    // Vendor specific
+    trades?: string[];
+    compliance?: {
+        coiExpiry: Date | string;
+        w9OnFile: boolean;
+    };
+
+    // Metadata
+    ownerId?: string;
+    aiContextSummary?: string;
+    createdAt?: Date | string;
+    updatedAt?: Date | string;
+}
+
+export interface Contact {
+    id?: string;
+    accountId: string;
+    firstName: string;
+    lastName: string;
+    title?: string;
+    email?: string;
+    phone?: string;
+    isPrimary: boolean;
+}
+
+export interface Activity {
+    id?: string;
+    accountId: string;
+    type: 'call' | 'email' | 'meeting' | 'note';
+    content: string;
+    createdBy: string;
+    createdAt: Date | string;
+}

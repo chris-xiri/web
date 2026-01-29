@@ -8,6 +8,7 @@ import AuditView from './pages/AuditView';
 
 import RecruiterView from './pages/RecruiterView';
 import SalesView from './pages/SalesView';
+import AccountDetailView from './pages/AccountDetailView';
 
 // Placeholders for new views - we will Create these in Phase 3
 
@@ -52,8 +53,13 @@ function App() {
           </Route>
 
           {/* Operations Workspace */}
-          <Route element={<ProtectedRoute allowedRoles={['auditor']} />}>
+          <Route element={<ProtectedRoute allowedRoles={['auditor', 'facility_manager']} />}>
             <Route path="/audit" element={<AuditView />} />
+          </Route>
+
+          {/* Shared Account Detail View - Accessible by most roles */}
+          <Route element={<ProtectedRoute allowedRoles={['sales', 'recruiter', 'facility_manager', 'super_admin']} />}>
+            <Route path="/account/:id" element={<AccountDetailView />} />
           </Route>
 
           <Route path="/" element={<RootRedirect />} />
