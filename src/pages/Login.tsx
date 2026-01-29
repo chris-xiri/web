@@ -15,7 +15,7 @@ const Login = () => {
 
     useEffect(() => {
         if (!loading && user) {
-            navigate(user.role === 'admin' ? '/admin' : '/audit');
+            navigate(user.role === 'super_admin' ? '/admin' : '/audit');
         }
     }, [user, loading, navigate]);
 

@@ -44,12 +44,12 @@ function App() {
 
           {/* Sales Workspace */}
           <Route element={<ProtectedRoute allowedRoles={['sales']} />}>
-            <Route path="/sales" element={<AdminView />} /> {/* Temporary: using AdminView */}
+            <Route path="/sales" element={<SalesView />} />
           </Route>
 
           {/* Recruiter Workspace */}
           <Route element={<ProtectedRoute allowedRoles={['recruiter']} />}>
-            <Route path="/recruiter" element={<AdminView />} /> {/* Temporary: using AdminView */}
+            <Route path="/recruiter" element={<RecruiterView />} />
           </Route>
 
           {/* Operations Workspace */}
