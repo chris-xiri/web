@@ -17,6 +17,7 @@ const AdminView = () => {
             setResults(data.data || []);
         } catch (error) {
             console.error(error);
+            alert('Scraper deployment failed. This usually happens if the live search takes longer than 10 seconds. Try a more specific trade.');
         }
         setLoading(false);
     };
