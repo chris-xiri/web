@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { api } from '../services/api';
 import { Search, MapPin, RefreshCw, PlusCircle, Building2, CheckCircle } from 'lucide-react';
+import LogoutButton from '../components/LogoutButton';
 import type { Vendor } from '../types';
 
 const AdminView = () => {
@@ -48,6 +49,7 @@ const AdminView = () => {
                         <h1 className="text-3xl font-bold text-xiri-primary tracking-tight">Admin Control</h1>
                         <p className="text-xiri-secondary font-medium mt-1">Scale your vendor network globally.</p>
                     </div>
+                    <LogoutButton />
                 </header>
 
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">

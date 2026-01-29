@@ -8,12 +8,14 @@ interface AuthContextType {
     user: AppUser | null;
     loading: boolean;
     switchView: (mode: 'sales' | 'recruiter' | 'auditor') => void;
+    logout: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType>({
     user: null,
     loading: true,
-    switchView: () => { }
+    switchView: () => { },
+    logout: async () => { }
 });
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
@@ -58,8 +60,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         }
     };
 
+    const logout = async () => {
+        try {
+            await auth.signOut();
+            setUser(null);
+        } catch (error) {
+            console.error('Error signing out', error);
+        }
+    };
+
     return (
-        <AuthContext.Provider value={{ user, loading, switchView }}>
+        <AuthContext.Provider value={{ user, loading, switchView, logout }}>
             {children}
         </AuthContext.Provider>
     );

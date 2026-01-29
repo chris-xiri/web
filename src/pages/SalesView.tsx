@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { api } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { Search, Building2, UserPlus, TrendingUp, Loader2 } from 'lucide-react';
+import LogoutButton from '../components/LogoutButton';
 import type { RawLead } from '../types';
 
 const SalesView = () => {
@@ -71,8 +72,11 @@ const SalesView = () => {
                     <h1 className="text-3xl font-bold text-xiri-primary tracking-tight">Growth Workspace</h1>
                     <p className="text-slate-500">Hunt for new business and manage pipeline.</p>
                 </div>
-                <div className="px-4 py-2 bg-rose-50 text-rose-600 rounded-xl text-sm font-bold border border-rose-100">
-                    {user?.email}
+                <div className="flex gap-4 items-center">
+                    <div className="px-4 py-2 bg-rose-50 text-rose-600 rounded-xl text-sm font-bold border border-rose-100">
+                        {user?.email}
+                    </div>
+                    <LogoutButton />
                 </div>
             </header>
 
@@ -83,8 +87,8 @@ const SalesView = () => {
                         key={tab}
                         onClick={() => setActiveTab(tab as any)}
                         className={`px-6 py-2.5 rounded-t-xl text-sm font-bold transition-all ${activeTab === tab
-                                ? 'bg-white text-rose-600 shadow-sm border border-b-0 border-slate-100 translate-y-px'
-                                : 'text-slate-400 hover:text-slate-600 hover:bg-slate-50'
+                            ? 'bg-white text-rose-600 shadow-sm border border-b-0 border-slate-100 translate-y-px'
+                            : 'text-slate-400 hover:text-slate-600 hover:bg-slate-50'
                             }`}
                     >
                         {tab.charAt(0).toUpperCase() + tab.slice(1)} {tab === 'search' && 'AI'}
