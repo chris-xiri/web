@@ -6,9 +6,10 @@ import Login from './pages/Login';
 import AdminView from './pages/AdminView'; // Still used for super_admin
 import AuditView from './pages/AuditView';
 
+import RecruiterView from './pages/RecruiterView';
+import SalesView from './pages/SalesView';
+
 // Placeholders for new views - we will Create these in Phase 3
-const SalesView = AdminView; // Temporary alias
-const RecruiterView = AdminView; // Temporary alias
 
 import { useAuth } from './context/AuthContext';
 

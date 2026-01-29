@@ -38,3 +38,15 @@ export interface User {
     territoryId?: string;
     viewMode?: 'sales' | 'recruiter' | 'auditor'; // For facility_manager to toggle views
 }
+export interface RawLead {
+    companyName: string;
+    website?: string;
+    phone?: string;
+    email?: string;
+    address?: string;
+    rating?: number;
+    trades?: string[];
+    aiSummary?: string;
+    source: 'google_maps';
+    scrapedAt: string;
+}
