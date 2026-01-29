@@ -108,6 +108,14 @@ const AdminView = () => {
                                                         <div>
                                                             <div className="font-bold text-xiri-primary">{v.companyName || v.name}</div>
                                                             <div className="text-xs font-medium text-slate-400 uppercase tracking-tighter">{v.trades?.join(', ') || v.trade} • {zipCode}</div>
+                                                            {v.website && (
+                                                                <a href={v.website} target="_blank" rel="noopener noreferrer" className="text-xs text-xiri-accent hover:underline">
+                                                                    {v.website.replace(/^https?:\/\/(www\.)?/, '').split('/')[0]}
+                                                                </a>
+                                                            )}
+                                                            {v.phone && (
+                                                                <div className="text-xs text-slate-500 mt-0.5">{v.phone}</div>
+                                                            )}
                                                         </div>
                                                     </div>
                                                 </td>

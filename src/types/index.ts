@@ -1,9 +1,14 @@
 export interface Vendor {
     id: string;
-    name: string;
-    trade: string;
-    zipCode: string;
+    name?: string;
+    companyName?: string;
+    trade?: string;
+    trades?: string[];
+    zipCode?: string;
     rating?: number;
+    website?: string;
+    phone?: string;
+    aiContextSummary?: string;
 }
 
 export interface Job {
