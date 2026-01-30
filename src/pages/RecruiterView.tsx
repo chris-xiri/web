@@ -15,7 +15,9 @@ const RecruiterView = () => {
 
     // CRM Data State
     const [vendors, setVendors] = useState<Account[]>([]);
+    const [activities, setActivities] = useState<Activity[]>([]);
     const [loadingVendors, setLoadingVendors] = useState(false);
+    const [loadingActivities, setLoadingActivities] = useState(false);
 
     // Modal State
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -31,6 +33,7 @@ const RecruiterView = () => {
 
     useEffect(() => {
         fetchVendors();
+        fetchActivities();
     }, []);
 
     const fetchVendors = async () => {
@@ -44,6 +47,19 @@ const RecruiterView = () => {
             console.error("Failed to fetch vendors", error);
         }
         setLoadingVendors(false);
+    };
+
+    const fetchActivities = async () => {
+        setLoadingActivities(true);
+        try {
+            const res = await api.getActivities();
+            if (res.data) {
+                setActivities(res.data);
+            }
+        } catch (error) {
+            console.error("Failed to fetch activities", error);
+        }
+        setLoadingActivities(false);
     };
 
     const handleScrape = async () => {
@@ -153,10 +169,52 @@ const RecruiterView = () => {
                     ))}
                 </div>
 
-                {/* Recent Activity or Placeholder */}
+                {/* Recent Activity Feed */}
                 <div className="bg-white p-8 rounded-2xl border border-slate-100 shadow-sm">
-                    <h3 className="text-lg font-bold text-slate-800 mb-4">Recent Activity</h3>
-                    <p className="text-slate-400">Activity feed coming soon...</p>
+                    <h3 className="text-lg font-bold text-slate-800 mb-6 flex items-center gap-2">
+                        <Clock size={20} className="text-indigo-500" />
+                        Recent Activity
+                    </h3>
+
+                    {loadingActivities ? (
+                        <div className="flex justify-center py-8">
+                            <Loader2 className="animate-spin text-slate-300" />
+                        </div>
+                    ) : (
+                        <div className="space-y-6 relative before:absolute before:left-[11px] before:top-2 before:bottom-2 before:w-0.5 before:bg-slate-50">
+                            {activities.slice(0, 5).map((activity, idx) => (
+                                <div key={activity.id || idx} className="relative pl-10">
+                                    <div className="absolute left-0 top-1.5 w-[22px] h-[22px] rounded-full bg-white border-2 border-slate-100 flex items-center justify-center z-10">
+                                        <div className={`w-2 h-2 rounded-full ${activity.type === 'email' ? 'bg-blue-500' :
+                                                activity.type === 'call' ? 'bg-emerald-500' :
+                                                    activity.type === 'meeting' ? 'bg-purple-500' : 'bg-slate-400'
+                                            }`} />
+                                    </div>
+                                    <div className="bg-slate-50/50 p-4 rounded-xl border border-slate-100/50 group hover:border-indigo-100 hover:bg-white transition-all">
+                                        <p className="text-slate-700 font-medium mb-1">{activity.content}</p>
+                                        <div className="flex items-center gap-2 text-xs text-slate-400 font-bold uppercase tracking-wider">
+                                            <span className="text-indigo-500/70">{activity.createdBy}</span>
+                                            <span className="w-1 h-1 rounded-full bg-slate-200" />
+                                            <span className="flex items-center gap-1">
+                                                <Clock size={10} />
+                                                {new Date(activity.createdAt).toLocaleString(undefined, {
+                                                    month: 'short',
+                                                    day: 'numeric',
+                                                    hour: '2-digit',
+                                                    minute: '2-digit'
+                                                })}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                            {activities.length === 0 && (
+                                <div className="text-center py-8 text-slate-400">
+                                    No activity recorded yet.
+                                </div>
+                            )}
+                        </div>
+                    )}
                 </div>
             </div>
         );

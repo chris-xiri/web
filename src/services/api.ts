@@ -83,5 +83,13 @@ export const api = {
             headers: { 'Content-Type': 'application/json' },
         });
         return response.json();
+    },
+
+    getActivities: async () => {
+        const response = await fetch(`${API_URL}/activities`, {
+            method: 'GET',
+            headers: { 'Content-Type': 'application/json' },
+        });
+        return response.json();
     }
 };
