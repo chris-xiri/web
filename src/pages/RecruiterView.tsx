@@ -44,7 +44,8 @@ const RecruiterView = () => {
     const [editingVendor, setEditingVendor] = useState<Account | undefined>(undefined);
 
     // Search State
-    const [zipCode, setZipCode] = useState('');
+    const [location, setLocation] = useState('');
+    const [radius, setRadius] = useState(10);
     const [trade, setTrade] = useState('');
     const [searchResults, setSearchResults] = useState<RawLead[]>([]);
     const [loadingSearch, setLoadingSearch] = useState(false);
@@ -83,19 +84,19 @@ const RecruiterView = () => {
     };
 
     const handleScrape = useCallback(async () => {
-        if (!zipCode || !trade) return;
+        if (!location || !trade) return;
         setLoadingSearch(true);
         setSearchResults([]);
         setSelectedIndices([]);
         try {
-            const data = await api.scrapeVendors(zipCode, trade);
+            const data = await api.scrapeVendors(location, trade, radius);
             setSearchResults(data.data || []);
         } catch (error) {
             console.error(error);
             alert('Search failed. Please try again.');
         }
         setLoadingSearch(false);
-    }, [zipCode, trade]);
+    }, [location, trade, radius]);
 
     const toggleSelection = useCallback((index: number) => {
         setSelectedIndices(prev =>
@@ -248,8 +249,10 @@ const RecruiterView = () => {
                 )}
                 {activeView === 'search' && (
                     <RecruiterSearchTab
-                        zipCode={zipCode}
-                        setZipCode={setZipCode}
+                        location={location}
+                        setLocation={setLocation}
+                        radius={radius}
+                        setRadius={setRadius}
                         trade={trade}
                         setTrade={setTrade}
                         handleScrape={handleScrape}

@@ -9,12 +9,17 @@ export const jobService = {
 };
 
 export const api = {
-    scrapeVendors: async (zipCode: string, trade: string) => {
+    scrapeVendors: async (location: string, trade: string, radius: number = 10) => {
         const response = await fetch(`${API_URL}/vendors/scrape`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ zipCode, trade }),
+            body: JSON.stringify({ location, trade, radius }),
         });
+        return response.json();
+    },
+
+    getLocationSuggestions: async (query: string) => {
+        const response = await fetch(`${API_URL}/vendors/autocomplete?query=${encodeURIComponent(query)}`);
         return response.json();
     },
 

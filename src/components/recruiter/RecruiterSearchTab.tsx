@@ -1,10 +1,13 @@
 import React, { memo } from 'react';
 import { Search, Loader2, UserPlus } from 'lucide-react';
+import { usePlacesWidget } from 'react-google-autocomplete';
 import type { RawLead } from '../../types';
 
 interface RecruiterSearchTabProps {
-    zipCode: string;
-    setZipCode: (val: string) => void;
+    location: string;
+    setLocation: (val: string) => void;
+    radius: number;
+    setRadius: (val: number) => void;
     trade: string;
     setTrade: (val: string) => void;
     handleScrape: () => void;
@@ -18,8 +21,10 @@ interface RecruiterSearchTabProps {
 }
 
 const RecruiterSearchTab = ({
-    zipCode,
-    setZipCode,
+    location,
+    setLocation,
+    radius,
+    setRadius,
     trade,
     setTrade,
     handleScrape,
@@ -31,37 +36,102 @@ const RecruiterSearchTab = ({
     importing,
     handleSingleAdd
 }: RecruiterSearchTabProps) => {
+
+    const { ref: materialRef } = usePlacesWidget({
+        apiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY,
+        onPlaceSelected: (place) => {
+            const addressComponents = place.address_components;
+            const zipCode = addressComponents?.find((c: any) => c.types.includes('postal_code'))?.long_name;
+
+            if (zipCode) {
+                setLocation(zipCode);
+            } else {
+                // Fallback to formatted address or specific parts if zip not found
+                setLocation(place.formatted_address || '');
+                console.warn("No postal code found in selected place. Using formatted address.");
+            }
+        },
+        options: {
+            types: ['(regions)'],
+            componentRestrictions: { country: 'us' },
+        },
+    });
+
     return (
         <div className="max-w-4xl mx-auto space-y-4">
-            <div className="bg-white p-5 rounded-xl shadow-sm border border-slate-100">
-                <div className="flex items-center gap-2 mb-4">
-                    <div className="p-2 bg-purple-50 text-purple-600 rounded-lg"><Search size={18} /></div>
-                    <h2 className="text-sm font-black text-slate-800 uppercase tracking-widest">Identify Experts</h2>
+            <div className="bg-white p-6 rounded-xl shadow-lg border border-slate-100">
+                <div className="flex items-center gap-2 mb-6">
+                    <div className="p-2.5 bg-indigo-600 text-white rounded-xl shadow-indigo-100 shadow-lg"><Search size={22} /></div>
+                    <div>
+                        <h2 className="text-lg font-black text-slate-900 leading-tight">Expert AI Hunter</h2>
+                        <p className="text-[11px] text-slate-400 font-bold uppercase tracking-wider">Search worldwide with precision targeting</p>
+                    </div>
                 </div>
-                <div className="flex gap-3">
-                    <input
-                        placeholder="Zip"
-                        className="flex-1 px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs font-bold"
-                        value={zipCode}
-                        onChange={e => setZipCode(e.target.value)}
-                    />
-                    <input
-                        placeholder="Trade..."
-                        className="flex-[2] px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs font-bold"
-                        value={trade}
-                        onChange={e => setTrade(e.target.value)}
-                    />
+
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+                    <div className="md:col-span-2 space-y-1.5 relative">
+                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Location</label>
+                        <div className="relative group">
+                            <input
+                                ref={materialRef as any}
+                                placeholder="Address, City, State, or Zip"
+                                className="w-full px-4 py-3 bg-slate-50 border-2 border-slate-100 rounded-xl text-sm font-bold focus:border-indigo-500 focus:bg-white transition-all outline-none"
+                                defaultValue={location}
+                                onChange={e => setLocation(e.target.value)}
+                            />
+                            <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-2">
+                                <Search size={16} className="text-slate-300 group-focus-within:text-indigo-500" />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="space-y-1.5">
+                        <div className="flex justify-between items-center ml-1">
+                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Radius</label>
+                            <span className="text-[10px] font-black text-indigo-600 bg-indigo-50 px-1.5 py-0.5 rounded">{radius} mi</span>
+                        </div>
+                        <input
+                            type="range"
+                            min="1"
+                            max="100"
+                            step="5"
+                            className="w-full h-10 accent-indigo-600 cursor-pointer"
+                            value={radius}
+                            onChange={e => setRadius(parseInt(e.target.value))}
+                        />
+                    </div>
+
+                    <div className="space-y-1.5">
+                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Expertise / Trade</label>
+                        <input
+                            placeholder="e.g. HVAC, Plumber..."
+                            className="w-full px-4 py-3 bg-slate-50 border-2 border-slate-100 rounded-xl text-sm font-bold focus:border-indigo-500 focus:bg-white transition-all outline-none"
+                            value={trade}
+                            onChange={e => setTrade(e.target.value)}
+                        />
+                    </div>
+                </div>
+
+                <div className="mt-6">
                     <button
                         onClick={handleScrape}
-                        disabled={loadingSearch || !zipCode || !trade}
-                        className="px-6 py-2 bg-purple-600 text-white text-xs font-black rounded-lg hover:bg-purple-700 transition-all disabled:opacity-50"
+                        disabled={loadingSearch || !location || !trade}
+                        className="w-full py-4 bg-indigo-600 text-white text-sm font-black rounded-xl hover:bg-indigo-700 hover:shadow-xl hover:shadow-indigo-100 transition-all disabled:opacity-50 flex items-center justify-center gap-2 group"
                     >
-                        {loadingSearch ? <Loader2 size={14} className="animate-spin" /> : 'HUNT'}
+                        {loadingSearch ? (
+                            <Loader2 size={18} className="animate-spin" />
+                        ) : (
+                            <>
+                                <Search size={18} className="group-hover:scale-110 transition-transform" />
+                                LAUNCH AI HUNTER
+                            </>
+                        )}
                     </button>
                 </div>
             </div>
+
             {searchResults.length > 0 && (
-                <div className="bg-white rounded border border-slate-200 shadow-sm overflow-hidden">
+                <div className="bg-white rounded-xl border border-slate-200 shadow-xl overflow-hidden">
                     <div className="px-3 py-2 border-b border-slate-200 flex justify-between items-center bg-slate-50/50">
                         <h3 className="text-[14px] font-bold text-slate-800">Review Found Experts</h3>
                         {selectedIndices.length > 0 && (
