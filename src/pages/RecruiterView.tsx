@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { api } from '../services/api';
 import { useAuth } from '../context/AuthContext';
-import { Search, Building2, UserPlus, CheckCircle2, X, Loader2, LayoutDashboard, List, Kanban, Phone, FileCheck, ShieldCheck, Mail, MapPin, Star, MoreVertical, Plus, Edit, Clock, AlertCircle } from 'lucide-react';
+import { Search, Building2, UserPlus, CheckCircle2, X, Loader2, LayoutDashboard, List, Kanban, Phone, FileCheck, ShieldCheck, Mail, MapPin, Star, MoreVertical, Plus, Edit, Clock, AlertCircle, FileText } from 'lucide-react';
 import LogoutButton from '../components/LogoutButton';
 import { useNavigate } from 'react-router-dom';
 import type { Account, Vendor, Activity } from '../types';
@@ -438,16 +438,48 @@ const RecruiterView = () => {
                                 </td>
                                 <td className="px-6 py-4">
                                     <div className="flex items-center gap-3">
-                                        {/* Insurance */}
-                                        <div className={`p-1.5 rounded-lg border ${vendor.compliance?.insuranceVerified ? 'bg-emerald-50 border-emerald-200 text-emerald-600' : 'bg-slate-50 border-slate-100 text-slate-300'}`} title="Insurance Verified">
-                                            <ShieldCheck size={16} />
-                                        </div>
-                                        {/* LLC */}
-                                        <div className={`p-1.5 rounded-lg border ${vendor.compliance?.isLLC ? 'bg-indigo-50 border-indigo-200 text-indigo-600' : 'bg-slate-50 border-slate-100 text-slate-300'}`} title="LLC Registered">
+                                        {/* Insurance Indicator */}
+                                        {(() => {
+                                            const hasInsurance = vendor.compliance?.insuranceVerified;
+                                            const expiry = vendor.compliance?.insuranceExpiry || vendor.compliance?.coiExpiry;
+                                            const isExpired = expiry && new Date(expiry) < new Date();
+                                            const isValid = hasInsurance && expiry && !isExpired;
+
+                                            let tooltip = "Insurance Missing";
+                                            if (hasInsurance && isExpired) tooltip = `Insurance Expired (${new Date(expiry!).toLocaleDateString()})`;
+                                            else if (isValid) tooltip = `Insurance Verified (Exp: ${new Date(expiry!).toLocaleDateString()})`;
+
+                                            return (
+                                                <div
+                                                    className={`p-1.5 rounded-lg border transition-colors ${isValid ? 'bg-emerald-50 border-emerald-200 text-emerald-600' : hasInsurance && isExpired ? 'bg-red-50 border-red-200 text-red-500' : 'bg-slate-50 border-slate-100 text-slate-300'}`}
+                                                    title={tooltip}
+                                                >
+                                                    <ShieldCheck size={16} />
+                                                </div>
+                                            );
+                                        })()}
+
+                                        {/* LLC Indicator */}
+                                        <div
+                                            className={`p-1.5 rounded-lg border transition-colors ${vendor.compliance?.isLLC ? 'bg-indigo-50 border-indigo-200 text-indigo-600' : 'bg-slate-50 border-slate-100 text-slate-300'}`}
+                                            title={vendor.compliance?.isLLC ? "LLC Registered" : "Sole Proprietor / Other"}
+                                        >
                                             <Building2 size={16} />
                                         </div>
-                                        {/* Contract */}
-                                        <div className={`p-1.5 rounded-lg border ${vendor.status === 'Active' ? 'bg-blue-50 border-blue-200 text-blue-600' : 'bg-slate-50 border-slate-100 text-slate-300'}`} title="Contract Active">
+
+                                        {/* W-9 Indicator */}
+                                        <div
+                                            className={`p-1.5 rounded-lg border transition-colors ${vendor.compliance?.w9Signed || vendor.compliance?.w9OnFile ? 'bg-emerald-50 border-emerald-200 text-emerald-600' : 'bg-slate-50 border-slate-100 text-slate-300'}`}
+                                            title={vendor.compliance?.w9Signed || vendor.compliance?.w9OnFile ? "W-9 Signed & On File" : "W-9 Missing"}
+                                        >
+                                            <FileText size={16} />
+                                        </div>
+
+                                        {/* Contract Indicator (Existing) */}
+                                        <div
+                                            className={`p-1.5 rounded-lg border transition-colors ${vendor.status === 'Active' ? 'bg-blue-50 border-blue-200 text-blue-600' : 'bg-slate-50 border-slate-100 text-slate-300'}`}
+                                            title={vendor.status === 'Active' ? "Contract Fully Executed" : "Contract Pending"}
+                                        >
                                             <FileCheck size={16} />
                                         </div>
                                     </div>
