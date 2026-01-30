@@ -153,6 +153,7 @@ const RecruiterSearchTab = ({
                                 <tr className="text-[12px] font-semibold text-slate-500 uppercase tracking-tight">
                                     <th className="px-3 py-1.5 border-b border-slate-200 w-10 text-center">Sel</th>
                                     <th className="px-3 py-1.5 border-b border-slate-200">Company</th>
+                                    <th className="px-3 py-1.5 border-b border-slate-200">Contact & Location</th>
                                     <th className="px-3 py-1.5 border-b border-slate-200">AI Analysis & Insights</th>
                                     <th className="px-3 py-1.5 border-b border-slate-200 text-right pr-4">Action</th>
                                 </tr>
@@ -165,9 +166,26 @@ const RecruiterSearchTab = ({
                                         </td>
                                         <td className="px-3 py-2 align-top">
                                             <div className="font-bold text-slate-900 text-[13px] leading-tight break-words">{v.companyName}</div>
+                                            {v.website && (
+                                                <a href={v.website.startsWith('http') ? v.website : `https://${v.website}`} target="_blank" rel="noopener noreferrer" className="text-[10px] text-indigo-600 hover:underline block mt-1 truncate max-w-[150px]">
+                                                    {v.website.replace(/^(https?:\/\/)?(www\.)?/, '')}
+                                                </a>
+                                            )}
                                         </td>
                                         <td className="px-3 py-2 align-top">
-                                            <p className="text-[12px] text-slate-600 italic whitespace-normal leading-relaxed break-words">{v.aiSummary}</p>
+                                            <div className="space-y-1">
+                                                {v.phone && <div className="text-[11px] font-bold text-slate-700">{v.phone}</div>}
+                                                {v.address && (
+                                                    <div className="text-[10px] text-slate-500 leading-tight">
+                                                        {v.address}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </td>
+                                        <td className="px-3 py-2 align-top">
+                                            <p className="text-[12px] text-slate-600 italic whitespace-normal leading-relaxed break-words line-clamp-3 hover:line-clamp-none transition-all cursor-default">
+                                                {v.aiSummary}
+                                            </p>
                                         </td>
                                         <td className="px-3 py-2 align-top text-right pr-4">
                                             <button
