@@ -446,7 +446,6 @@ const RecruiterView = () => {
                         )}
                     </>
                 )}
-                )}
 
                 {activeTab !== 'search' && activeTab !== 'dashboard' && activeTab !== 'pipeline' && activeTab !== 'accounts' && (
                     <div className="text-center py-20 text-slate-400">
