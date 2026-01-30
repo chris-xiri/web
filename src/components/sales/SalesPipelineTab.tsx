@@ -86,4 +86,15 @@ const SalesPipelineTab = ({ prospects, handleDragStart, handleDragOver, handleDr
                             ))}
                             {stageProspects.length === 0 && (
                                 <div className="text-center py-6 text-slate-300 text-[10px] font-bold uppercase border-2 border-dashed border-slate-200 rounded">
-                                    No 
+                                    No leads
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                );
+            })}
+        </div>
+    );
+};
+
+export default memo(SalesPipelineTab);
