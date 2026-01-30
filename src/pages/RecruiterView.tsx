@@ -194,12 +194,24 @@ const RecruiterView = () => {
         const handleLaunchSequence = async (vendor: Account) => {
             if (confirm(`Start outreach sequence for ${vendor.name}?`)) {
                 try {
+                    // Optimistic update for immediate UI feedback
+                    const updatedVendors = vendors.map(v => v.id === vendor.id ? { ...v, status: 'Outreach' } : v);
+                    setVendors(updatedVendors as Account[]);
+
+                    // Start the sequence (Backend sends email 1)
                     await api.startOutreachSequence(vendor.id || '');
+
+                    // Explicitly update status to 'Outreach' as requested
+                    await api.updateVendor(vendor.id!, {
+                        status: 'Outreach'
+                    });
+
                     alert('Outreach sequence started!');
-                    fetchVendors();
+                    fetchVendors(); // Force refresh to get calculated outreach dates from backend
                 } catch (err) {
                     console.error(err);
                     alert('Failed to start outreach.');
+                    fetchVendors(); // Revert on error
                 }
             }
         };
