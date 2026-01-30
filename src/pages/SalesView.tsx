@@ -378,10 +378,10 @@ const SalesView = () => {
                                 />
                                 <button
                                     onClick={handleScrape}
-                                    disabled={loading || !zipCode || !industry}
+                                    disabled={loadingSearch || !zipCode || !industry}
                                     className="px-8 py-4 bg-xiri-primary text-white font-bold rounded-xl hover:bg-slate-800 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-slate-200"
                                 >
-                                    {loading ? <Loader2 className="animate-spin" /> : 'Hunt Prospects'}
+                                    {loadingSearch ? <Loader2 className="animate-spin" /> : 'Hunt Prospects'}
                                 </button>
                             </div>
                         </div>
