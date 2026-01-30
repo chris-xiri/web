@@ -67,7 +67,7 @@ export interface Account {
         fullNumber?: string;
     };
     sqFt?: number;
-    status: 'New' | 'Contacted' | 'Vetting' | 'Active' | 'Inactive' | 'Lead' | 'Churned' | 'Rejected';
+    status: 'New' | 'Contacted' | 'Vetting' | 'Active' | 'Inactive' | 'Lead' | 'Churned' | 'Rejected' | 'Outreach' | 'Onboarding' | 'Unresponsive';
     rating: number;
 
     // Vendor specific
@@ -77,6 +77,13 @@ export interface Account {
         w9OnFile?: boolean;
         insuranceVerified?: boolean;
         isLLC?: boolean;
+    };
+    outreach?: {
+        step: number;
+        lastEmailSentAt?: Date | string;
+        nextEmailAt?: Date | string;
+        campaignId?: string;
+        status: 'active' | 'paused' | 'completed';
     };
 
     // Metadata

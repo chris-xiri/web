@@ -45,6 +45,14 @@ export const api = {
         return response.json();
     },
 
+    startOutreachSequence: async (vendorId: string) => {
+        const response = await fetch(`${API_URL}/vendors/${vendorId}/start-sequence`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+        });
+        return response.json();
+    },
+
     scrapeProspects: async (zipCode: string, query: string) => {
         const response = await fetch(`${API_URL}/crm/prospects/search`, {
             method: 'POST',
