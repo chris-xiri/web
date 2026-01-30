@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { api } from '../services/api';
 import { Search, MapPin, RefreshCw, PlusCircle, Building2, CheckCircle } from 'lucide-react';
 import LogoutButton from '../components/LogoutButton';
+import LoadingBar from '../components/LoadingBar';
 import type { Vendor } from '../types';
 
 const AdminView = () => {
@@ -42,43 +43,48 @@ const AdminView = () => {
     };
 
     return (
-        <div className="min-h-screen bg-xiri-background p-4 md:p-8 font-sans">
-            <div className="max-w-7xl mx-auto">
-                <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-10">
+        <div className="min-h-screen bg-xiri-background p-4 font-sans">
+            <LoadingBar isLoading={loading} />
+            <div className="max-w-[1400px] mx-auto">
+                <header className="flex justify-between items-center mb-4">
                     <div>
-                        <h1 className="text-3xl font-bold text-xiri-primary tracking-tight">Admin Control</h1>
-                        <p className="text-xiri-secondary font-medium mt-1">Scale your vendor network globally.</p>
+                        <div className="flex items-center gap-2 mb-0.5">
+                            <span className="px-1.5 py-0.5 bg-rose-100 text-rose-700 text-[9px] font-black uppercase tracking-widest rounded border border-rose-200">
+                                System Admin
+                            </span>
+                        </div>
+                        <h1 className="text-xl font-black text-slate-900 tracking-tight">Admin Operations</h1>
                     </div>
                     <LogoutButton />
                 </header>
 
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
                     {/* Search Panel */}
-                    <div className="lg:col-span-4">
-                        <div className="bg-white p-8 rounded-3xl shadow-xl shadow-slate-200/50 border border-slate-100 sticky top-8">
-                            <div className="flex items-center gap-2 mb-6">
-                                <Search className="text-xiri-accent" size={24} />
-                                <h2 className="text-xl font-bold text-xiri-primary">Acquire Vendors</h2>
+                    <div className="lg:col-span-3">
+                        <div className="bg-white p-5 rounded-xl shadow-sm border border-slate-100 sticky top-4">
+                            <div className="flex items-center gap-2 mb-4">
+                                <Search className="text-rose-500" size={18} />
+                                <h2 className="text-xs font-black text-slate-800 uppercase tracking-widest">Acquire Network</h2>
                             </div>
 
-                            <div className="space-y-5">
-                                <div className="space-y-1.5">
-                                    <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider ml-1">Target Zip Code</label>
+                            <div className="space-y-4">
+                                <div className="space-y-1">
+                                    <label className="text-[9px] font-black text-slate-400 uppercase tracking-tighter">Target Zip</label>
                                     <div className="relative">
-                                        <MapPin className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                                        <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-300" size={14} />
                                         <input
                                             placeholder="e.g. 90210"
-                                            className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-xiri-accent/20 focus:border-xiri-accent outline-none transition-all"
+                                            className="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs font-bold outline-none focus:border-rose-400 transition-all font-sans"
                                             value={zipCode}
                                             onChange={(e) => setZipCode(e.target.value)}
                                         />
                                     </div>
                                 </div>
-                                <div className="space-y-1.5">
-                                    <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider ml-1">Trade Category</label>
+                                <div className="space-y-1">
+                                    <label className="text-[9px] font-black text-slate-400 uppercase tracking-tighter">Trade Filter</label>
                                     <input
-                                        placeholder="e.g. Electrician, Plumbing"
-                                        className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-xiri-accent/20 focus:border-xiri-accent outline-none transition-all"
+                                        placeholder="e.g. Electrician"
+                                        className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs font-bold outline-none focus:border-rose-400 transition-all font-sans"
                                         value={trade}
                                         onChange={(e) => setTrade(e.target.value)}
                                     />
@@ -86,10 +92,10 @@ const AdminView = () => {
                                 <button
                                     onClick={handleScrape}
                                     disabled={loading}
-                                    className="w-full bg-xiri-primary text-white py-4 rounded-2xl font-bold hover:bg-xiri-secondary active:scale-[0.98] transition-all shadow-lg shadow-xiri-primary/10 flex items-center justify-center gap-2 mt-2 disabled:opacity-70"
+                                    className="w-full bg-rose-600 text-white py-2.5 rounded-lg font-black text-[10px] uppercase tracking-widest hover:bg-rose-700 active:scale-[0.98] transition-all shadow-md shadow-rose-100 flex items-center justify-center gap-2 mt-2 disabled:opacity-70"
                                 >
                                     {loading ? (
-                                        <RefreshCw className="animate-spin" size={20} />
+                                        <RefreshCw className="animate-spin" size={14} />
                                     ) : (
                                         <>Deploy Scraper</>
                                     )}
@@ -99,71 +105,66 @@ const AdminView = () => {
                     </div>
 
                     {/* Results Table */}
-                    <div className="lg:col-span-8">
-                        <div className="bg-white rounded-3xl shadow-xl shadow-slate-200/50 border border-slate-100 overflow-hidden">
-                            <div className="p-8 border-b border-slate-50 flex justify-between items-center">
-                                <h2 className="text-xl font-bold text-xiri-primary">Discovery Results</h2>
-                                <span className="px-3 py-1 bg-xiri-accent/10 text-xiri-accent text-xs font-bold rounded-full">
-                                    {results.length} Found
+                    <div className="lg:col-span-9">
+                        <div className="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
+                            <div className="p-4 border-b border-slate-50 flex justify-between items-center bg-slate-50/20">
+                                <h2 className="text-xs font-black text-slate-800 uppercase tracking-widest">Discovery Results</h2>
+                                <span className="px-2 py-0.5 bg-rose-50 text-rose-600 text-[10px] font-black rounded border border-rose-100 uppercase tracking-tight">
+                                    {results.length} Nodes Identified
                                 </span>
                             </div>
 
-                            <div className="overflow-x-auto">
+                            <div className="max-h-[calc(100vh-180px)] overflow-y-auto">
                                 <table className="w-full text-left">
-                                    <thead>
-                                        <tr className="bg-slate-50/50">
-                                            <th className="px-8 py-4 text-xs font-bold text-slate-400 uppercase tracking-widest">Vendor Identity</th>
-                                            <th className="px-8 py-4 text-xs font-bold text-slate-400 uppercase tracking-widest">AI Summary</th>
-                                            <th className="px-8 py-4 text-xs font-bold text-slate-400 uppercase tracking-widest text-right">Action</th>
+                                    <thead className="sticky top-0 z-10">
+                                        <tr className="bg-slate-100/95 backdrop-blur-sm border-b border-slate-200">
+                                            <th className="px-6 py-2 text-[10px] font-black text-slate-500 uppercase tracking-widest">Identity</th>
+                                            <th className="px-6 py-2 text-[10px] font-black text-slate-500 uppercase tracking-widest">Analysis</th>
+                                            <th className="px-6 py-2 text-[10px] font-black text-slate-500 uppercase tracking-widest text-right">Action</th>
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-slate-50">
                                         {results.map((v, i) => (
                                             <tr key={i} className="hover:bg-slate-50/30 transition-colors">
-                                                <td className="px-8 py-5">
+                                                <td className="px-6 py-3">
                                                     <div className="flex items-center gap-3">
-                                                        <div className="w-10 h-10 bg-slate-100 rounded-xl flex items-center justify-center text-slate-400">
-                                                            <Building2 size={20} />
+                                                        <div className="w-8 h-8 bg-slate-50 rounded flex items-center justify-center text-slate-300 border border-slate-100">
+                                                            <Building2 size={16} />
                                                         </div>
                                                         <div>
-                                                            <div className="font-bold text-xiri-primary">{v.companyName || v.name}</div>
-                                                            <div className="text-xs font-medium text-slate-400 uppercase tracking-tighter">{v.trades?.join(', ') || v.trade} • {zipCode}</div>
-                                                            {v.website && (
-                                                                <a href={v.website} target="_blank" rel="noopener noreferrer" className="text-xs text-xiri-accent hover:underline">
-                                                                    {v.website.replace(/^https?:\/\/(www\.)?/, '').split('/')[0]}
-                                                                </a>
-                                                            )}
-                                                            {v.phone && (
-                                                                <div className="text-xs text-slate-500 mt-0.5">{v.phone}</div>
-                                                            )}
-                                                            {v.email && (
-                                                                <a href={`mailto:${v.email}`} className="text-xs text-slate-500 hover:text-xiri-accent mt-0.5 block">
-                                                                    {v.email}
-                                                                </a>
-                                                            )}
+                                                            <div className="font-bold text-slate-800 text-[11px] uppercase tracking-tight leading-tight">{v.companyName || v.name}</div>
+                                                            <div className="text-[9px] font-black text-slate-400 uppercase tracking-tighter mt-0.5">{v.trades?.join(', ') || v.trade} • {zipCode}</div>
+                                                            <div className="flex gap-2 mt-1">
+                                                                {v.website && (
+                                                                    <a href={v.website} target="_blank" rel="noopener noreferrer" className="text-[9px] font-sans text-rose-500 hover:underline lowercase">
+                                                                        {v.website.replace(/^https?:\/\/(www\.)?/, '').split('/')[0]}
+                                                                    </a>
+                                                                )}
+                                                                {v.email && <div className="text-[9px] font-sans text-slate-400">{v.email}</div>}
+                                                            </div>
                                                         </div>
                                                     </div>
                                                 </td>
-                                                <td className="px-8 py-5">
+                                                <td className="px-6 py-3">
                                                     <div className="max-w-md">
-                                                        <p className="text-xs text-slate-500 leading-relaxed">
+                                                        <p className="text-[10px] text-slate-500 leading-snug italic line-clamp-2 hover:line-clamp-none cursor-pointer">
                                                             {v.aiContextSummary || "No AI summary available yet."}
                                                         </p>
                                                     </div>
                                                 </td>
-                                                <td className="px-8 py-5 text-right">
+                                                <td className="px-6 py-3 text-right">
                                                     {v.status === 'Active' ? (
-                                                        <div className="inline-flex items-center gap-2 px-3 py-2 bg-green-100 text-green-700 rounded-lg text-xs font-bold">
-                                                            <CheckCircle size={16} />
+                                                        <div className="inline-flex items-center gap-1.5 px-2 py-1 bg-emerald-50 text-emerald-600 rounded text-[9px] font-black uppercase tracking-widest border border-emerald-100">
+                                                            <CheckCircle size={12} />
                                                             <span>Active</span>
                                                         </div>
                                                     ) : (
                                                         <button
                                                             onClick={() => handleApproveVendor(v.id!, i)}
-                                                            className="p-2 bg-slate-100 text-slate-600 rounded-lg hover:bg-xiri-success hover:text-white transition-all"
-                                                            title="Approve Vendor"
+                                                            className="p-1.5 bg-slate-50 text-slate-300 rounded hover:bg-emerald-500 hover:text-white transition-all border border-slate-100"
+                                                            title="Approve"
                                                         >
-                                                            <PlusCircle size={20} />
+                                                            <PlusCircle size={16} />
                                                         </button>
                                                     )}
                                                 </td>

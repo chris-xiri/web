@@ -46,69 +46,69 @@ const AccountDetailView = () => {
     return (
         <div className="min-h-screen bg-xiri-background p-6 font-sans">
             {/* Header / Nav */}
-            <div className="max-w-7xl mx-auto mb-6">
+            <div className="max-w-[1400px] mx-auto mb-4">
                 <button
                     onClick={() => navigate(-1)}
-                    className="flex items-center gap-2 text-slate-400 hover:text-slate-600 mb-4 transition-colors font-medium text-sm"
+                    className="flex items-center gap-2 text-slate-400 hover:text-slate-600 mb-3 transition-colors font-black text-[10px] uppercase tracking-widest"
                 >
-                    <ArrowLeft size={16} /> Back to Space
+                    <ArrowLeft size={12} /> Back
                 </button>
 
-                <div className="bg-white rounded-[2rem] p-8 shadow-sm border border-slate-100 flex justify-between items-start">
-                    <div className="flex gap-6">
-                        <div className="w-20 h-20 bg-slate-100 rounded-2xl flex items-center justify-center text-slate-400">
-                            <Building2 size={32} />
+                <div className="bg-white rounded-xl p-4 shadow-sm border border-slate-100 flex justify-between items-start">
+                    <div className="flex gap-4">
+                        <div className="w-14 h-14 bg-slate-50 rounded-lg flex items-center justify-center text-slate-300 border border-slate-100">
+                            <Building2 size={24} />
                         </div>
                         <div>
-                            <div className="flex items-center gap-3 mb-1">
-                                <h1 className="text-3xl font-bold text-slate-800">{account?.name}</h1>
-                                <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide ${healthColor}`}>
+                            <div className="flex items-center gap-2 mb-0.5">
+                                <h1 className="text-xl font-black text-slate-900 tracking-tight leading-tight">{account?.name}</h1>
+                                <span className={`px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-widest ${healthColor} border border-current opacity-70`}>
                                     {account?.status}
                                 </span>
                             </div>
-                            <div className="flex items-center gap-4 text-slate-500 text-sm font-medium">
-                                <span className="flex items-center gap-1.5"><MapPin size={14} /> {account?.address?.fullNumber || 'No Address'}</span>
-                                <span className="w-1 h-1 bg-slate-300 rounded-full" />
-                                <span className="flex items-center gap-1.5"><Globe size={14} /> {account?.website}</span>
-                                <span className="w-1 h-1 bg-slate-300 rounded-full" />
-                                <span className="text-indigo-500">{account?.industry}</span>
+                            <div className="flex items-center gap-3 text-slate-400 text-[10px] font-bold uppercase tracking-tight">
+                                <span className="flex items-center gap-1"><MapPin size={10} /> {account?.address?.city || 'No Location'}</span>
+                                <span className="w-1 h-1 bg-slate-200 rounded-full" />
+                                <span className="flex items-center gap-1 font-sans lowercase truncate max-w-[150px]">{account?.website}</span>
+                                <span className="w-1 h-1 bg-slate-200 rounded-full" />
+                                <span className="text-indigo-400">{account?.industry}</span>
                             </div>
                         </div>
                     </div>
                     <div className="text-right">
-                        <div className="text-3xl font-black text-slate-800">{account?.rating?.toFixed(1) || '-'}</div>
-                        <div className="text-xs font-bold text-slate-400 uppercase tracking-wider">Quality Score</div>
+                        <div className="text-xl font-black text-slate-900 leading-tight">{account?.rating?.toFixed(1) || '-'}</div>
+                        <div className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Quality score</div>
                     </div>
                 </div>
             </div>
 
             {/* 3-Column Layout */}
-            <div className="max-w-7xl mx-auto grid grid-cols-12 gap-6">
+            <div className="max-w-[1400px] mx-auto grid grid-cols-12 gap-4">
 
                 {/* Left Column: Company Info (3 cols) */}
-                <div className="col-span-12 lg:col-span-3 space-y-6">
-                    <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100">
-                        <h3 className="font-bold text-slate-700 mb-4 flex items-center gap-2">
-                            <AlertCircle size={18} className="text-slate-400" />
-                            About
+                <div className="col-span-12 lg:col-span-3 space-y-4">
+                    <div className="bg-white rounded-xl p-4 shadow-sm border border-slate-100">
+                        <h3 className="text-[10px] font-black text-slate-700 mb-3 flex items-center gap-2 uppercase tracking-widest">
+                            <AlertCircle size={14} className="text-slate-300" />
+                            Description
                         </h3>
-                        <p className="text-sm text-slate-500 leading-relaxed mb-6">
+                        <p className="text-[11px] text-slate-500 leading-relaxed mb-4 italic">
                             {account?.aiContextSummary || "No AI summary available."}
                         </p>
 
-                        <div className="space-y-4">
+                        <div className="space-y-3">
                             <div>
-                                <label className="text-xs font-bold text-slate-400 uppercase">Phone</label>
-                                <div className="font-medium text-slate-700">{account?.phone || '-'}</div>
+                                <label className="text-[9px] font-black text-slate-400 uppercase tracking-tighter">Phone</label>
+                                <div className="text-xs font-bold text-slate-700">{account?.phone || '-'}</div>
                             </div>
                             <div>
-                                <label className="text-xs font-bold text-slate-400 uppercase">Email</label>
-                                <div className="font-medium text-slate-700">{account?.email || '-'}</div>
+                                <label className="text-[9px] font-black text-slate-400 uppercase tracking-tighter">Email</label>
+                                <div className="text-xs font-bold text-slate-700 truncate">{account?.email || '-'}</div>
                             </div>
                             {account?.sqFt && (
                                 <div>
-                                    <label className="text-xs font-bold text-slate-400 uppercase">Facility Size</label>
-                                    <div className="font-medium text-slate-700">{account.sqFt.toLocaleString()} sq ft</div>
+                                    <label className="text-[9px] font-black text-slate-400 uppercase tracking-tighter">Facility Size</label>
+                                    <div className="text-xs font-bold text-slate-700">{account.sqFt.toLocaleString()} SQFT</div>
                                 </div>
                             )}
                         </div>
@@ -116,25 +116,23 @@ const AccountDetailView = () => {
 
                     {/* AI & Vetting Card */}
                     {(account?.vettingNotes || account?.aiContextSummary) && (
-                        <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100">
-                            <h3 className="font-bold text-slate-700 mb-4 flex items-center gap-2">
-                                <ShieldCheck size={18} className="text-amber-500" />
-                                AI Vetting & Intelligence
+                        <div className="bg-white rounded-xl p-4 shadow-sm border border-slate-100">
+                            <h3 className="text-[10px] font-black text-slate-700 mb-3 flex items-center gap-2 uppercase tracking-widest">
+                                <ShieldCheck size={14} className="text-amber-500" />
+                                Vetting Report
                             </h3>
 
                             {account?.vettingNotes && (
-                                <div className="bg-amber-50 p-4 rounded-xl border border-amber-200 mb-4">
-                                    <h4 className="text-[10px] font-bold text-amber-700 uppercase mb-1">Automated Vetting Report</h4>
-                                    <p className="text-xs text-amber-900 italic leading-relaxed">
+                                <div className="bg-amber-50/50 p-3 rounded-lg border border-amber-100 mb-3">
+                                    <p className="text-[11px] text-amber-900 italic leading-relaxed">
                                         {account.vettingNotes}
                                     </p>
                                 </div>
                             )}
 
                             {account?.aiContextSummary && (
-                                <div className="bg-indigo-50 p-4 rounded-xl border border-indigo-100">
-                                    <h4 className="text-[10px] font-bold text-indigo-700 uppercase mb-1">Deep Intelligence Summary</h4>
-                                    <p className="text-xs text-indigo-900 leading-relaxed">
+                                <div className="bg-indigo-50/50 p-3 rounded-lg border border-indigo-100">
+                                    <p className="text-[11px] text-indigo-900 leading-relaxed">
                                         {account.aiContextSummary}
                                     </p>
                                 </div>
@@ -144,74 +142,73 @@ const AccountDetailView = () => {
                 </div>
 
                 {/* Center Column: Related Contacts & Deals (6 cols) */}
-                <div className="col-span-12 lg:col-span-6 space-y-6">
-                    <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100">
-                        <div className="flex justify-between items-center mb-6">
-                            <h3 className="font-bold text-slate-700 flex items-center gap-2">
-                                <Users size={18} className="text-indigo-500" />
-                                Key Contacts
+                <div className="col-span-12 lg:col-span-6 space-y-4">
+                    <div className="bg-white rounded-xl p-4 shadow-sm border border-slate-100">
+                        <div className="flex justify-between items-center mb-4">
+                            <h3 className="text-[10px] font-black text-slate-700 flex items-center gap-2 uppercase tracking-widest">
+                                <Users size={14} className="text-indigo-400" />
+                                Stakeholders
                             </h3>
-                            <button className="p-2 hover:bg-slate-50 rounded-xl text-slate-400 hover:text-indigo-600 transition-colors">
-                                <Plus size={20} />
+                            <button className="p-1 hover:bg-slate-50 rounded text-slate-300 hover:text-indigo-600 transition-colors">
+                                <Plus size={16} />
                             </button>
                         </div>
 
                         {/* Empty State Stub */}
-                        <div className="text-center py-8 border-2 border-dashed border-slate-100 rounded-2xl bg-slate-50/50">
-                            <div className="text-slate-400 font-medium text-sm">No contacts added yet</div>
-                            <button className="text-indigo-600 font-bold text-sm mt-2 hover:underline">Add Primary Contact</button>
+                        <div className="text-center py-6 border border-dashed border-slate-100 rounded-lg bg-slate-50/20">
+                            <div className="text-slate-300 font-bold text-[10px] uppercase tracking-wider">No contacts added</div>
                         </div>
                     </div>
 
-                    <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100">
-                        <div className="flex justify-between items-center mb-6">
-                            <h3 className="font-bold text-slate-700 flex items-center gap-2">
-                                <CheckCircle2 size={18} className="text-emerald-500" />
-                                Active Deals / Jobs
+                    <div className="bg-white rounded-xl p-4 shadow-sm border border-slate-100">
+                        <div className="flex justify-between items-center mb-4">
+                            <h3 className="text-[10px] font-black text-slate-700 flex items-center gap-2 uppercase tracking-widest">
+                                <CheckCircle2 size={14} className="text-emerald-400" />
+                                Project Flow
                             </h3>
                         </div>
-                        <div className="text-center py-8 border-2 border-dashed border-slate-100 rounded-2xl bg-slate-50/50">
-                            <div className="text-slate-400 font-medium text-sm">No active workflows</div>
+                        <div className="text-center py-6 border border-dashed border-slate-100 rounded-lg bg-slate-50/20">
+                            <div className="text-slate-300 font-bold text-[10px] uppercase tracking-wider">No active workflows</div>
                         </div>
                     </div>
                 </div>
 
                 {/* Right Column: Activity Feed (3 cols) */}
-                <div className="col-span-12 lg:col-span-3 space-y-6">
-                    <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100 h-full min-h-[500px]">
-                        <h3 className="font-bold text-slate-700 mb-6 flex items-center gap-2">
-                            <MessageSquare size={18} className="text-rose-500" />
-                            Activity Feed
+                <div className="col-span-12 lg:col-span-3 space-y-4">
+                    <div className="bg-white rounded-xl p-4 shadow-sm border border-slate-100 h-full min-h-[400px] flex flex-col">
+                        <h3 className="text-[10px] font-black text-slate-700 mb-4 flex items-center gap-2 uppercase tracking-widest">
+                            <MessageSquare size={14} className="text-rose-400" />
+                            Operations Log
                         </h3>
 
-                        <div className="relative pl-4 border-l-2 border-slate-100 space-y-8">
+                        <div className="relative pl-3 border-l-2 border-slate-50 space-y-5 flex-1 overflow-y-auto pr-1 scrollbar-thin">
                             {/* Feed Item Stub */}
                             <div className="relative">
-                                <div className="absolute -left-[21px] top-0 w-3 h-3 rounded-full bg-slate-200 border-2 border-white ring-1 ring-slate-100" />
-                                <div className="text-xs font-bold text-slate-400 mb-1 flex items-center gap-1">
-                                    <Clock size={10} /> Just now
+                                <div className="absolute -left-[19px] top-1 w-2 h-2 rounded-full bg-slate-100 border border-white" />
+                                <div className="text-[9px] font-black text-slate-300 uppercase tracking-tighter mb-0.5 flex items-center gap-1">
+                                    <Clock size={8} /> Just now
                                 </div>
-                                <p className="text-sm text-slate-600">
-                                    <span className="font-bold text-slate-800">System</span> created this account from AI Import.
+                                <p className="text-[11px] text-slate-600 leading-tight">
+                                    <span className="font-bold text-slate-800">System</span> initialized account profile.
                                 </p>
                             </div>
                             <div className="relative">
-                                <div className="absolute -left-[21px] top-0 w-3 h-3 rounded-full bg-indigo-100 border-2 border-white ring-1 ring-indigo-50" />
-                                <div className="text-xs font-bold text-slate-400 mb-1 flex items-center gap-1">
-                                    <Clock size={10} /> 2 mins ago
+                                <div className="absolute -left-[19px] top-1 w-2 h-2 rounded-full bg-indigo-50 border border-white" />
+                                <div className="text-[9px] font-black text-slate-300 uppercase tracking-tighter mb-0.5 flex items-center gap-1">
+                                    <Clock size={8} /> 2m ago
                                 </div>
-                                <p className="text-sm text-slate-600">
-                                    <span className="font-bold text-slate-800">AI Agent</span> enriched profile data.
+                                <p className="text-[11px] text-slate-600 leading-tight">
+                                    <span className="font-bold text-slate-800">AI Logic</span> finalized data enrichment.
                                 </p>
                             </div>
                         </div>
 
-                        <div className="mt-8 pt-6 border-t border-slate-100">
+                        <div className="mt-4 pt-4 border-t border-slate-50">
                             <textarea
                                 placeholder="Log a note..."
-                                className="w-full bg-slate-50 border-0 rounded-xl p-3 text-sm focus:ring-2 focus:ring-slate-200 outline-none resize-none h-24 mb-2"
+                                className="w-full bg-slate-50 border-0 rounded-lg p-2 text-[11px] focus:ring-1 focus:ring-slate-200 outline-none resize-none h-16 mb-2 font-medium"
                             />
-                            <button className="w-full py-2 bg-slate-800 text-white rounded-xl font-bold text-sm hover:bg-slate-700">Post Note</button>
+                            <button className="w-full py-1.5 bg-slate-900 text-white rounded-lg font-black text-[10px] uppercase tracking-widest hover:bg-slate-800 transition-all">Submit</button>
                         </div>
                     </div>
                 </div>

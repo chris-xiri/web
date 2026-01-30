@@ -127,37 +127,38 @@ const VendorModal = ({ isOpen, onClose, onSave, initialData }: VendorModalProps)
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
             <div className="bg-white rounded-2xl shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-                <div className="flex justify-between items-center p-6 border-b border-slate-100 sticky top-0 bg-white z-10">
-                    <h2 className="text-xl font-bold text-slate-800">
+                <div className="flex justify-between items-center p-4 border-b border-slate-100 sticky top-0 bg-white z-10">
+                    <h2 className="text-sm font-black text-slate-800 uppercase tracking-widest">
                         {initialData ? 'Edit Vendor' : 'Add New Vendor'}
                     </h2>
-                    <button onClick={onClose} className="p-2 hover:bg-slate-100 rounded-full text-slate-400 transition-colors">
-                        <X size={20} />
+                    <button onClick={onClose} className="p-1.5 hover:bg-slate-100 rounded-full text-slate-400 transition-colors">
+                        <X size={18} />
                     </button>
                 </div>
 
-                <form onSubmit={handleSubmit} className="p-6 space-y-6">
+                <form onSubmit={handleSubmit} className="p-4 space-y-4">
                     {/* Basic Info */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                         <div className="space-y-1">
-                            <label className="text-sm font-bold text-slate-700">Company Name *</label>
+                            <label className="text-[10px] font-black text-slate-700 uppercase tracking-tight">Company Name *</label>
                             <input
                                 required
-                                className="w-full px-4 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 outline-none transition-all"
+                                className="w-full px-3 py-1.5 border border-slate-200 rounded-lg text-xs font-bold focus:ring-2 focus:ring-indigo-500/20 outline-none transition-all"
                                 value={formData.name || ''}
                                 onChange={e => updateField('name', e.target.value)}
                             />
                         </div>
                         <div className="space-y-1">
-                            <label className="text-sm font-bold text-slate-700">Status</label>
+                            <label className="text-[10px] font-black text-slate-700 uppercase tracking-tight">Status</label>
                             <select
-                                className="w-full px-4 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 outline-none transition-all cursor-pointer"
+                                className="w-full px-3 py-1.5 border border-slate-200 rounded-lg text-xs font-bold focus:ring-2 focus:ring-indigo-500/20 outline-none transition-all cursor-pointer"
                                 value={formData.status || 'New'}
                                 onChange={e => updateField('status', e.target.value)}
                             >
                                 <option value="New">New</option>
                                 <option value="Outreach">In Sequence</option>
                                 <option value="Onboarding">Onboarding</option>
+                                <option value="Vetting">Vetting</option>
                                 <option value="Active">Active</option>
                                 <option value="Rejected">Rejected</option>
                                 <option value="Unresponsive">Unresponsive</option>
@@ -166,23 +167,23 @@ const VendorModal = ({ isOpen, onClose, onSave, initialData }: VendorModalProps)
                     </div>
 
                     {/* Contact Info */}
-                    <div className="space-y-4">
-                        <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100 pb-2">Contact Details</h3>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-3">
+                        <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-wider border-b border-slate-100 pb-1">Contact Details</h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                             <div className="space-y-1">
-                                <label className="text-sm font-medium text-slate-600">Email</label>
+                                <label className="text-[10px] font-black text-slate-500 uppercase">Email</label>
                                 <input
                                     type="email"
-                                    className="w-full px-4 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 outline-none transition-all"
+                                    className="w-full px-3 py-1.5 border border-slate-200 rounded-lg text-xs font-bold focus:ring-2 focus:ring-indigo-500/20 outline-none transition-all"
                                     value={formData.email || ''}
                                     onChange={e => updateField('email', e.target.value)}
                                 />
                             </div>
                             <div className="space-y-1">
-                                <label className="text-sm font-medium text-slate-600">Phone</label>
+                                <label className="text-[10px] font-black text-slate-500 uppercase">Phone</label>
                                 <input
                                     type="tel"
-                                    className="w-full px-4 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 outline-none transition-all"
+                                    className="w-full px-3 py-1.5 border border-slate-200 rounded-lg text-xs font-bold focus:ring-2 focus:ring-indigo-500/20 outline-none transition-all"
                                     value={formData.phone || ''}
                                     onChange={e => updateField('phone', e.target.value)}
                                 />
@@ -191,23 +192,23 @@ const VendorModal = ({ isOpen, onClose, onSave, initialData }: VendorModalProps)
                     </div>
 
                     {/* Address & Trade */}
-                    <div className="space-y-4">
-                        <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100 pb-2">Location & Trade</h3>
+                    <div className="space-y-3">
+                        <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-wider border-b border-slate-100 pb-1">Location & Trade</h3>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                             <div className="space-y-1">
-                                <label className="text-sm font-medium text-slate-600">Primary Trade</label>
+                                <label className="text-[10px] font-black text-slate-500 uppercase">Primary Trade</label>
                                 <input
                                     placeholder="e.g. Janitorial, HVAC"
-                                    className="w-full px-4 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 outline-none transition-all"
+                                    className="w-full px-3 py-1.5 border border-slate-200 rounded-lg text-xs font-bold focus:ring-2 focus:ring-indigo-500/20 outline-none transition-all"
                                     value={primaryTrade}
                                     onChange={e => setPrimaryTrade(e.target.value)}
                                 />
                             </div>
                             <div className="space-y-1">
-                                <label className="text-sm font-medium text-slate-600">Zip Code</label>
+                                <label className="text-[10px] font-black text-slate-500 uppercase">Zip Code</label>
                                 <input
-                                    className="w-full px-4 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 outline-none transition-all"
+                                    className="w-full px-3 py-1.5 border border-slate-200 rounded-lg text-xs font-bold focus:ring-2 focus:ring-indigo-500/20 outline-none transition-all"
                                     value={formData.address?.zipCode || ''}
                                     onChange={e => updateAddress('zipCode', e.target.value)}
                                 />
@@ -216,53 +217,53 @@ const VendorModal = ({ isOpen, onClose, onSave, initialData }: VendorModalProps)
                     </div>
 
                     {/* Compliance & Legal */}
-                    <div className="space-y-4 bg-slate-50 p-6 rounded-2xl border border-slate-100">
-                        <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wider flex items-center gap-2">
-                            <ShieldCheck size={18} className="text-indigo-600" />
+                    <div className="space-y-3 bg-slate-50 p-4 rounded-xl border border-slate-100">
+                        <h3 className="text-[10px] font-black text-slate-800 uppercase tracking-wider flex items-center gap-2">
+                            <ShieldCheck size={16} className="text-indigo-600" />
                             Compliance & Legal
                         </h3>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div className="space-y-4">
-                                <label className="flex items-center gap-3 p-3 bg-white rounded-xl border border-slate-200 cursor-pointer hover:border-indigo-300 transition-all">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="space-y-3">
+                                <label className="flex items-center gap-2 p-2 bg-white rounded-lg border border-slate-200 cursor-pointer hover:border-indigo-300 transition-all">
                                     <input
                                         type="checkbox"
-                                        className="w-5 h-5 rounded-md border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                                        className="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500"
                                         checked={formData.compliance?.insuranceVerified || false}
                                         onChange={e => updateCompliance('insuranceVerified', e.target.checked)}
                                     />
-                                    <span className="text-sm font-medium text-slate-700">Insurance Verified</span>
+                                    <span className="text-[10px] font-black text-slate-700 uppercase tracking-tight">Insurance Verified</span>
                                 </label>
 
-                                <label className="flex items-center gap-3 p-3 bg-white rounded-xl border border-slate-200 cursor-pointer hover:border-indigo-300 transition-all">
+                                <label className="flex items-center gap-2 p-2 bg-white rounded-lg border border-slate-200 cursor-pointer hover:border-indigo-300 transition-all">
                                     <input
                                         type="checkbox"
-                                        className="w-5 h-5 rounded-md border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                                        className="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500"
                                         checked={formData.compliance?.isLLC || false}
                                         onChange={e => updateCompliance('isLLC', e.target.checked)}
                                     />
-                                    <span className="text-sm font-medium text-slate-700">LLC Registered</span>
+                                    <span className="text-[10px] font-black text-slate-700 uppercase tracking-tight">LLC Registered</span>
                                 </label>
 
-                                <label className="flex items-center gap-3 p-3 bg-white rounded-xl border border-slate-200 cursor-pointer hover:border-indigo-300 transition-all">
+                                <label className="flex items-center gap-2 p-2 bg-white rounded-lg border border-slate-200 cursor-pointer hover:border-indigo-300 transition-all">
                                     <input
                                         type="checkbox"
-                                        className="w-5 h-5 rounded-md border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                                        className="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500"
                                         checked={formData.compliance?.w9Signed || false}
                                         onChange={e => updateCompliance('w9Signed', e.target.checked)}
                                     />
-                                    <span className="text-sm font-medium text-slate-700">W-9 Signed / Received</span>
+                                    <span className="text-[10px] font-black text-slate-700 uppercase tracking-tight">W-9 Received</span>
                                 </label>
                             </div>
 
-                            <div className="space-y-4">
+                            <div className="space-y-3">
                                 <div className="space-y-1">
-                                    <label className="text-sm font-bold text-slate-700 flex items-center gap-2">
-                                        <Calendar size={14} /> Insurance Expiration
+                                    <label className="text-[10px] font-black text-slate-700 uppercase tracking-tight flex items-center gap-1">
+                                        <Calendar size={12} /> Insurance Expiration
                                     </label>
                                     <input
                                         type="date"
-                                        className="w-full px-4 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 outline-none transition-all"
+                                        className="w-full px-3 py-1.5 border border-slate-200 rounded-lg text-xs font-bold focus:ring-2 focus:ring-indigo-500/20 outline-none transition-all"
                                         value={formData.compliance?.insuranceExpiry ? (typeof formData.compliance.insuranceExpiry === 'string' ? formData.compliance.insuranceExpiry.split('T')[0] : formData.compliance.insuranceExpiry.toISOString().split('T')[0]) : ''}
                                         onChange={e => updateCompliance('insuranceExpiry', e.target.value)}
                                     />
@@ -332,21 +333,21 @@ const VendorModal = ({ isOpen, onClose, onSave, initialData }: VendorModalProps)
                         )}
                     </div>
 
-                    <div className="flex justify-end gap-3 pt-4 border-t border-slate-100">
+                    <div className="flex justify-end gap-3 pt-3 border-t border-slate-100">
                         <button
                             type="button"
                             onClick={onClose}
-                            className="px-6 py-2.5 rounded-xl font-bold text-slate-500 hover:bg-slate-100 transition-all"
+                            className="px-4 py-2 rounded-lg font-black text-[10px] uppercase text-slate-500 hover:bg-slate-100 transition-all tracking-widest"
                         >
                             Cancel
                         </button>
                         <button
                             type="submit"
                             disabled={loading}
-                            className="px-6 py-2.5 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-200 flex items-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
+                            className="px-5 py-2 bg-indigo-600 text-white rounded-lg font-black text-[10px] uppercase hover:bg-indigo-700 transition-all shadow-md shadow-indigo-100 flex items-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed tracking-widest"
                         >
-                            {loading ? <Loader2 size={18} className="animate-spin" /> : <Save size={18} />}
-                            {initialData ? 'Save Changes' : 'Create Vendor'}
+                            {loading ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
+                            {initialData ? 'Update Account' : 'Create Account'}
                         </button>
                     </div>
                 </form>

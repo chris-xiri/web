@@ -1,21 +1,36 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { api } from '../services/api';
 import { useAuth } from '../context/AuthContext';
-import { Search, Building2, UserPlus, CheckCircle2, X, Loader2, LayoutDashboard, List, Kanban, Phone, FileCheck, ShieldCheck, Mail, MapPin, Star, MoreVertical, Plus, Edit, Clock, AlertCircle, FileText, Award, ShieldAlert, Map } from 'lucide-react';
+import { LayoutDashboard, List, Kanban, Search, X, Building2 } from 'lucide-react';
 import LogoutButton from '../components/LogoutButton';
-import type { Account, Vendor, Activity } from '../types';
+import type { Account, Activity, RawLead } from '../types';
 import VendorModal from '../components/VendorModal';
 
+// Extracted Components
+import RecruiterDashboardTab from '../components/recruiter/RecruiterDashboardTab';
+import RecruiterPipelineTab from '../components/recruiter/RecruiterPipelineTab';
+import RecruiterAccountsTab from '../components/recruiter/RecruiterAccountsTab';
+import RecruiterSearchTab from '../components/recruiter/RecruiterSearchTab';
+import LoadingBar from '../components/LoadingBar';
 
 const RecruiterView = () => {
     const { user } = useAuth();
     const navigate = useNavigate();
     const [searchParams, setSearchParams] = useSearchParams();
-    const activeTab = searchParams.get('tab') || 'dashboard';
 
-    const setActiveTab = (tab: string) => {
-        setSearchParams({ tab });
+    // URL as Source of Truth
+    const activeView = searchParams.get('view') || 'dashboard';
+    const statusFilter = searchParams.get('status');
+
+    const setView = (view: string, status?: string) => {
+        const params: any = { view };
+        if (status) params.status = status;
+        setSearchParams(params);
+    };
+
+    const clearFilters = () => {
+        setSearchParams({ view: activeView });
     };
 
     // CRM Data State
@@ -31,7 +46,7 @@ const RecruiterView = () => {
     // Search State
     const [zipCode, setZipCode] = useState('');
     const [trade, setTrade] = useState('');
-    const [searchResults, setSearchResults] = useState<any[]>([]); // Raw leads
+    const [searchResults, setSearchResults] = useState<RawLead[]>([]);
     const [loadingSearch, setLoadingSearch] = useState(false);
     const [selectedIndices, setSelectedIndices] = useState<number[]>([]);
     const [importing, setImporting] = useState(false);
@@ -67,7 +82,7 @@ const RecruiterView = () => {
         setLoadingActivities(false);
     };
 
-    const handleScrape = async () => {
+    const handleScrape = useCallback(async () => {
         if (!zipCode || !trade) return;
         setLoadingSearch(true);
         setSearchResults([]);
@@ -80,58 +95,74 @@ const RecruiterView = () => {
             alert('Search failed. Please try again.');
         }
         setLoadingSearch(false);
-    };
+    }, [zipCode, trade]);
 
-    const toggleSelection = (index: number) => {
+    const toggleSelection = useCallback((index: number) => {
         setSelectedIndices(prev =>
             prev.includes(index)
                 ? prev.filter(i => i !== index)
                 : [...prev, index]
         );
-    };
+    }, []);
 
-    const processLeads = async (indices: number[], status: 'New' | 'Rejected') => {
+    const processLeads = useCallback(async (indices: number[], status: 'New' | 'Rejected') => {
         if (indices.length === 0 || !user) return;
         setImporting(true);
         try {
             const leadsToProcess = indices.map(i => searchResults[i]);
             await api.importLeads(leadsToProcess, 'vendor', user.uid, status);
 
-            // Remove processed items from search results
             const newResults = searchResults.filter((_, i) => !indices.includes(i));
             setSearchResults(newResults);
-            setSelectedIndices([]); // Clear selection
+            setSelectedIndices([]);
 
             if (status === 'New') {
                 alert(`Successfully added ${indices.length} vendors to the pipeline.`);
                 fetchVendors();
-                setActiveTab('pipeline');
+                setView('pipeline');
             }
         } catch (error) {
             console.error(error);
             alert(`Failed to process vendors.`);
         }
         setImporting(false);
-    };
+    }, [searchResults, user]);
 
-    const handleBulkImport = () => processLeads(selectedIndices, 'New');
-    const handleBulkReject = () => processLeads(selectedIndices, 'Rejected');
+    const handleUpdateStatus = useCallback(async (id: string, newStatus: string) => {
+        // Optimistic Update
+        setVendors(prev => prev.map(v => v.id === id ? { ...v, status: newStatus as any } : v));
+        try {
+            await api.updateVendor(id, { status: newStatus });
+        } catch (error) {
+            console.error(error);
+            fetchVendors(); // Revert
+        }
+    }, []);
 
-    // Single row actions
-    const handleSingleAdd = (index: number) => processLeads([index], 'New');
-    const handleSingleReject = (index: number) => processLeads([index], 'Rejected');
+    const handleLaunchSequence = useCallback(async (id: string) => {
+        // Optimistic Update
+        setVendors(prev => prev.map(v => v.id === id ? { ...v, status: 'Outreach', outreach: { step: 1, nextEmailAt: new Date().toISOString() } } as any : v));
+        try {
+            await api.startOutreachSequence(id);
+        } catch (error) {
+            console.error(error);
+            fetchVendors(); // Revert
+        }
+    }, []);
 
-    // Modal Handlers
-    const handleAddVendor = () => {
+    const handleBulkImport = useCallback(() => processLeads(selectedIndices, 'New'), [processLeads, selectedIndices]);
+    const handleSingleAdd = useCallback((index: number) => processLeads([index], 'New'), [processLeads]);
+
+    const handleAddVendor = useCallback(() => {
         setEditingVendor(undefined);
         setIsModalOpen(true);
-    };
+    }, []);
 
-    const handleEditVendor = (vendor: Account, e: React.MouseEvent) => {
-        e.stopPropagation(); // prevent row click navigation
+    const handleEditVendor = useCallback((vendor: Account, e: React.MouseEvent) => {
+        e.stopPropagation();
         setEditingVendor(vendor);
         setIsModalOpen(true);
-    };
+    }, []);
 
     const handleSaveVendor = async (data: Partial<Account>) => {
         try {
@@ -147,675 +178,93 @@ const RecruiterView = () => {
         }
     };
 
-
-    // --- Sub-Components ---
-
-    const DashboardTab = () => {
-        const stats = [
-            { label: 'Total Vendors', value: vendors.length, icon: Building2, color: 'text-indigo-600', bg: 'bg-indigo-50' },
-            { label: 'New Leads', value: vendors.filter(v => v.status === 'New').length, icon: UserPlus, color: 'text-emerald-600', bg: 'bg-emerald-50' },
-            { label: 'Active', value: vendors.filter(v => v.status === 'Active').length, icon: CheckCircle2, color: 'text-blue-600', bg: 'bg-blue-50' },
-            { label: 'Vetting', value: vendors.filter(v => v.status === 'Vetting').length, icon: ShieldCheck, color: 'text-amber-600', bg: 'bg-amber-50' },
-            { label: 'Local Market Density', value: 'Moderate', icon: Map, color: 'text-purple-600', bg: 'bg-purple-50', subtext: 'Based on last search' },
-        ];
-
-        return (
-            <div className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                    {stats.map((stat, i) => (
-                        <div key={i} className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm flex items-center gap-4">
-                            <div className={`p-4 rounded-xl ${stat.bg} ${stat.color}`}>
-                                <stat.icon size={24} />
-                            </div>
-                            <div>
-                                <p className="text-slate-500 text-sm font-medium">{stat.label}</p>
-                                <p className="text-2xl font-bold text-slate-800">{stat.value}</p>
-                            </div>
-                        </div>
-                    ))}
-                </div>
-
-                {/* Recent Activity Feed */}
-                <div className="bg-white p-8 rounded-2xl border border-slate-100 shadow-sm">
-                    <h3 className="text-lg font-bold text-slate-800 mb-6 flex items-center gap-2">
-                        <Clock size={20} className="text-indigo-500" />
-                        Recent Activity
-                    </h3>
-
-                    {loadingActivities ? (
-                        <div className="flex justify-center py-8">
-                            <Loader2 className="animate-spin text-slate-300" />
-                        </div>
-                    ) : (
-                        <div className="space-y-6 relative before:absolute before:left-[11px] before:top-2 before:bottom-2 before:w-0.5 before:bg-slate-50">
-                            {activities.slice(0, 5).map((activity, idx) => (
-                                <div key={activity.id || idx} className="relative pl-10">
-                                    <div className="absolute left-0 top-1.5 w-[22px] h-[22px] rounded-full bg-white border-2 border-slate-100 flex items-center justify-center z-10">
-                                        <div className={`w-2 h-2 rounded-full ${activity.type === 'email' ? 'bg-blue-500' :
-                                            activity.type === 'call' ? 'bg-emerald-500' :
-                                                activity.type === 'meeting' ? 'bg-purple-500' : 'bg-slate-400'
-                                            }`} />
-                                    </div>
-                                    <div className="bg-slate-50/50 p-4 rounded-xl border border-slate-100/50 group hover:border-indigo-100 hover:bg-white transition-all">
-                                        <p className="text-slate-700 font-medium mb-1">{activity.content}</p>
-                                        <div className="flex items-center gap-2 text-xs text-slate-400 font-bold uppercase tracking-wider">
-                                            <span className="text-indigo-500/70">{activity.createdBy}</span>
-                                            <span className="w-1 h-1 rounded-full bg-slate-200" />
-                                            <span className="flex items-center gap-1">
-                                                <Clock size={10} />
-                                                {new Date(activity.createdAt).toLocaleString(undefined, {
-                                                    month: 'short',
-                                                    day: 'numeric',
-                                                    hour: '2-digit',
-                                                    minute: '2-digit'
-                                                })}
-                                            </span>
-                                        </div>
-                                    </div>
-                                </div>
-                            ))}
-                            {activities.length === 0 && (
-                                <div className="text-center py-8 text-slate-400">
-                                    No activity recorded yet.
-                                </div>
-                            )}
-                        </div>
-                    )}
-                </div>
-            </div>
-        );
-    };
-
-    const PipelineTab = () => {
-        const columns = [
-            { id: 'New', label: 'New Leads', status: 'New', color: 'bg-blue-500' },
-            { id: 'Outreach', label: 'In Sequence', status: 'Outreach', color: 'bg-indigo-500' },
-            { id: 'Onboarding', label: 'Replied / Onboarding', status: 'Onboarding', color: 'bg-emerald-500' },
-            { id: 'Vetting', label: 'Vetting (AI Scanned)', status: 'Vetting', color: 'bg-amber-500' },
-            { id: 'Unresponsive', label: 'Unresponsive (Dead)', status: 'Unresponsive', color: 'bg-slate-400' },
-            { id: 'Active', label: 'Active Network', status: 'Active', color: 'bg-blue-600' }
-        ];
-
-        const handleMarkReplied = async (vendor: Account) => {
-            if (confirm(`Mark ${vendor.name} as replied? This will stop the automated sequence.`)) {
-                try {
-                    // Optimistic update
-                    const updatedVendors = vendors.map(v => v.id === vendor.id ? { ...v, status: 'Onboarding' } : v);
-                    setVendors(updatedVendors as Account[]);
-
-                    await api.updateVendor(vendor.id!, {
-                        status: 'Onboarding',
-                        outreach: { ...vendor.outreach, status: 'completed' as const }
-                    });
-                    fetchVendors();
-                } catch (error) {
-                    console.error(error);
-                    alert("Failed to update status");
-                    fetchVendors(); // Revert
-                }
-            }
-        };
-
-        const handleLaunchSequence = async (vendor: Account) => {
-            if (confirm(`Start outreach sequence for ${vendor.name}?`)) {
-                try {
-                    // Optimistic update for immediate UI feedback
-                    const updatedVendors = vendors.map(v => v.id === vendor.id ? { ...v, status: 'Outreach' } : v);
-                    setVendors(updatedVendors as Account[]);
-
-                    // Start the sequence (Backend sends email 1)
-                    await api.startOutreachSequence(vendor.id || '');
-
-                    // Explicitly update status to 'Outreach' as requested
-                    await api.updateVendor(vendor.id!, {
-                        status: 'Outreach'
-                    });
-
-                    alert('Outreach sequence started!');
-                    fetchVendors(); // Force refresh to get calculated outreach dates from backend
-                } catch (err) {
-                    console.error(err);
-                    alert('Failed to start outreach.');
-                    fetchVendors(); // Revert on error
-                }
-            }
-        };
-
-        return (
-            <div className="flex gap-6 overflow-x-auto pb-6 -mx-2 px-2">
-                {columns.map(col => {
-                    const stageVendors = vendors.filter(v => (v.status || 'New') === col.status);
-                    return (
-                        <div key={col.id} className="min-w-[320px] flex-1 bg-slate-50/50 rounded-2xl p-4 border border-slate-200 h-fit max-h-[calc(100vh-220px)] overflow-y-auto scrollbar-hide">
-                            <div className="flex justify-between items-center mb-4 px-2 sticky top-0 bg-slate-50/80 backdrop-blur-sm z-10 py-2 rounded-lg">
-                                <div className="flex items-center gap-2">
-                                    <div className={`w-2 h-2 rounded-full ${col.color}`} />
-                                    <h3 className="font-bold text-slate-700 text-sm uppercase tracking-wider">{col.label}</h3>
-                                </div>
-                                <span className="bg-white px-2 py-1 rounded-lg text-xs font-bold text-slate-500 shadow-sm border border-slate-100">{stageVendors.length}</span>
-                            </div>
-                            <div className="space-y-3">
-                                {stageVendors.map(vendor => (
-                                    <div key={vendor.id} className="bg-white p-4 rounded-xl border border-slate-100 shadow-sm hover:shadow-md transition-all cursor-pointer group relative border-l-4 border-l-transparent hover:border-l-indigo-500">
-                                        <div className="flex justify-between items-start mb-1">
-                                            <h4 className="font-bold text-slate-800 line-clamp-1 group-hover:text-indigo-600 transition-colors uppercase tracking-tight">{vendor.name}</h4>
-                                        </div>
-
-                                        <div className="flex gap-2 mb-3">
-                                            {vendor.trades && vendor.trades.length > 0 && (
-                                                <div className="text-[10px] font-bold text-slate-400 uppercase tracking-tight px-1.5 py-0.5 bg-slate-50 rounded border border-slate-100">{vendor.trades[0]}</div>
-                                            )}
-                                            {vendor.yearEstablished && (new Date().getFullYear() - vendor.yearEstablished >= 10) && (
-                                                <div className="text-[10px] font-bold text-amber-600 uppercase tracking-tight px-1.5 py-0.5 bg-amber-50 rounded border border-amber-100 flex items-center gap-1">
-                                                    <Award size={10} /> Legacy
-                                                </div>
-                                            )}
-                                        </div>
-
-                                        {/* Vetting Alert */}
-                                        {vendor.status === 'Vetting' && vendor.vettingNotes && (
-                                            <div className="mb-4 bg-amber-50 border border-amber-200 rounded-xl p-3">
-                                                <div className="flex items-center gap-2 text-amber-700 font-bold text-[10px] uppercase mb-1">
-                                                    <ShieldAlert size={12} /> Automated Vetting Report
-                                                </div>
-                                                <p className="text-[11px] text-amber-800 leading-tight italic line-clamp-3">
-                                                    {vendor.vettingNotes}
-                                                </p>
-                                            </div>
-                                        )}
-
-                                        {/* Outreach Progress Badge */}
-                                        {col.status === 'Outreach' && vendor.outreach && (
-                                            <div className="mb-4 bg-indigo-50/50 p-3 rounded-xl border border-indigo-100/50">
-                                                <div className="flex justify-between items-center text-xs text-indigo-700 font-bold mb-2">
-                                                    <span className="flex items-center gap-1.5">
-                                                        <Mail size={12} className="text-indigo-500" />
-                                                        Sequence Step {vendor.outreach.step}/3
-                                                    </span>
-                                                    <div className="flex gap-0.5">
-                                                        {[1, 2, 3].map(s => (
-                                                            <div key={s} className={`w-3 h-1 rounded-full ${s <= (vendor.outreach?.step || 0) ? 'bg-indigo-500' : 'bg-indigo-200'}`} />
-                                                        ))}
-                                                    </div>
-                                                </div>
-                                                <div className="flex items-center gap-1.5 text-[10px] text-indigo-500 font-medium">
-                                                    <Clock size={10} />
-                                                    Next follow-up: {vendor.outreach.nextEmailAt ? new Date(vendor.outreach.nextEmailAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) : 'Scheduled'}
-                                                </div>
-                                            </div>
-                                        )}
-
-                                        {/* Unresponsive Badge */}
-                                        {col.status === 'Unresponsive' && (
-                                            <div className="mb-3 bg-slate-100 p-2 rounded-lg border border-slate-200 flex items-center gap-2 text-[10px] font-bold text-slate-500 opacity-75">
-                                                <X size={12} /> Sequence Completed - No Reply
-                                            </div>
-                                        )}
-
-                                        <div className="flex justify-between items-center mt-3 pt-3 border-t border-slate-50">
-                                            <div className="flex gap-2.5">
-                                                {vendor.phone && <Phone size={14} className="text-slate-300 hover:text-slate-500 transition-colors" />}
-                                                {vendor.email && <Mail size={14} className="text-slate-300 hover:text-slate-500 transition-colors" />}
-                                                {vendor.address?.fullNumber && <MapPin size={14} className="text-slate-300" />}
-                                            </div>
-                                            <div className="flex items-center gap-1 text-xs font-bold text-amber-400">
-                                                <Star size={12} fill="currentColor" />
-                                                {vendor.rating?.toFixed(1) || '-'}
-                                            </div>
-                                        </div>
-
-                                        {/* Action Buttons */}
-                                        <div className="mt-4 flex gap-2">
-                                            {col.status === 'New' && (
-                                                <div className="flex-1">
-                                                    {!vendor.email && (
-                                                        <div className="text-[10px] text-red-500 font-bold mb-1.5 flex items-center gap-1">
-                                                            <AlertCircle size={10} /> Email required to launch
-                                                        </div>
-                                                    )}
-                                                    <button
-                                                        onClick={(e) => { e.stopPropagation(); handleLaunchSequence(vendor); }}
-                                                        disabled={!vendor.email}
-                                                        className={`w-full text-xs font-black py-2.5 rounded-xl transition-all flex items-center justify-center gap-2 border ${vendor.email
-                                                            ? "bg-indigo-600 text-white hover:bg-indigo-700 shadow-md shadow-indigo-100 border-indigo-500"
-                                                            : "bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed"
-                                                            }`}
-                                                    >
-                                                        <Mail size={14} /> LAUNCH SEQUENCE
-                                                    </button>
-                                                </div>
-                                            )}
-                                            {col.status === 'Outreach' && (
-                                                <button
-                                                    onClick={(e) => { e.stopPropagation(); handleMarkReplied(vendor); }}
-                                                    className="flex-1 bg-emerald-500 text-white text-xs font-black py-2.5 rounded-xl hover:bg-emerald-600 transition-all shadow-md shadow-emerald-100 flex items-center justify-center gap-2 border border-emerald-400"
-                                                >
-                                                    <CheckCircle2 size={14} /> MARK REPLIED
-                                                </button>
-                                            )}
-                                            {col.status === 'Onboarding' && (
-                                                <button
-                                                    onClick={async (e) => {
-                                                        e.stopPropagation();
-                                                        if (confirm(`Move ${vendor.name} to Vetting stage?`)) {
-                                                            await api.updateVendor(vendor.id!, { status: 'Vetting' });
-                                                            fetchVendors();
-                                                        }
-                                                    }}
-                                                    className="flex-1 bg-amber-500 text-white text-xs font-black py-2.5 rounded-xl hover:bg-amber-600 transition-all shadow-md shadow-amber-100 flex items-center justify-center gap-2 border border-amber-400"
-                                                >
-                                                    <ShieldCheck size={14} /> START VETTING
-                                                </button>
-                                            )}
-                                            {col.status === 'Vetting' && (
-                                                <button
-                                                    onClick={async (e) => {
-                                                        e.stopPropagation();
-                                                        if (confirm(`Approve and Activate ${vendor.name}?`)) {
-                                                            await api.updateVendor(vendor.id!, { status: 'Active' });
-                                                            fetchVendors();
-                                                        }
-                                                    }}
-                                                    className="flex-1 bg-blue-600 text-white text-xs font-black py-2.5 rounded-xl hover:bg-blue-700 transition-all shadow-md shadow-blue-100 flex items-center justify-center gap-2 border border-blue-500"
-                                                >
-                                                    <CheckCircle2 size={14} /> ACTIVATE VENDOR
-                                                </button>
-                                            )}
-                                        </div>
-                                    </div>
-                                ))}
-                                {stageVendors.length === 0 && (
-                                    <div className="text-center py-10 text-slate-300 text-sm border-2 border-dashed border-slate-200 rounded-2xl bg-white/50">
-                                        <Building2 size={24} className="mx-auto mb-2 opacity-20" />
-                                        Empty stage
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-                    );
-                })}
-            </div>
-        );
-    };
-
-    const AccountsTab = () => {
-        return (
-            <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
-                <div className="p-6 border-b border-slate-100 flex justify-between items-center">
-                    <h3 className="font-bold text-slate-800 text-lg">All Vendors</h3>
-                    <button
-                        onClick={handleAddVendor}
-                        className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-xl font-bold text-sm hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-200"
-                    >
-                        <Plus size={18} /> Add Vendor
-                    </button>
-                </div>
-                <table className="w-full">
-                    <thead>
-                        <tr className="bg-slate-50 border-b border-slate-200 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">
-                            <th className="px-6 py-4">Company</th>
-                            <th className="px-6 py-4">Status</th>
-                            <th className="px-6 py-4">Contact</th>
-                            <th className="px-6 py-4">Compliance & Contract</th>
-                            <th className="px-6 py-4 text-center">Rating</th>
-                            <th className="px-6 py-4 text-right">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-100">
-                        {vendors.filter(v => v.status !== 'Rejected').map((vendor) => (
-                            <tr key={vendor.id} onClick={() => navigate(`/account/${vendor.id}`)} className="hover:bg-slate-50/50 transition-colors cursor-pointer group">
-                                <td className="px-6 py-4">
-                                    <div className="flex items-center gap-2 font-bold text-slate-800">
-                                        {vendor.name}
-                                        {vendor.yearEstablished && (new Date().getFullYear() - vendor.yearEstablished >= 10) && (
-                                            <span className="bg-amber-100 text-amber-700 text-[10px] px-2 py-0.5 rounded-full flex items-center gap-1">
-                                                <Award size={10} /> 10+ Years
-                                            </span>
-                                        )}
-                                    </div>
-                                    <div className="text-xs text-slate-500 flex items-center gap-1 mt-1">
-                                        <MapPin size={12} />
-                                        {vendor.address?.fullNumber || vendor.address?.zipCode || 'No Address'}
-                                        {vendor.confidenceScore && vendor.confidenceScore > 1.5 && (
-                                            <span className="flex items-center gap-1 text-emerald-500 font-bold ml-1">
-                                                <ShieldCheck size={10} /> Verified
-                                            </span>
-                                        )}
-                                    </div>
-                                    {vendor.trades && vendor.trades.length > 0 && (
-                                        <div className="flex gap-1 mt-2">
-                                            <span className="text-[10px] bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded font-bold uppercase">{vendor.trades[0]}</span>
-                                        </div>
-                                    )}
-                                </td>
-                                <td className="px-6 py-4">
-                                    <span className={`inline-flex px-3 py-1 rounded-full text-xs font-bold 
-                                        ${vendor.status === 'Active' ? 'bg-emerald-100 text-emerald-700' :
-                                            vendor.status === 'New' ? 'bg-blue-100 text-blue-700' :
-                                                vendor.status === 'Vetting' ? 'bg-amber-100 text-amber-700' :
-                                                    'bg-slate-100 text-slate-600'}`}>
-                                        {vendor.status || 'New'}
-                                    </span>
-                                </td>
-                                <td className="px-6 py-4">
-                                    <div className="text-sm text-slate-600 space-y-1">
-                                        {vendor.email && <div className="flex items-center gap-2"><Mail size={14} className="text-slate-300" /> {vendor.email}</div>}
-                                        {vendor.phone && <div className="flex items-center gap-2"><Phone size={14} className="text-slate-300" /> {vendor.phone}</div>}
-                                    </div>
-                                </td>
-                                <td className="px-6 py-4">
-                                    <div className="flex items-center gap-3">
-                                        {/* Insurance Indicator */}
-                                        {(() => {
-                                            const hasInsurance = vendor.compliance?.insuranceVerified;
-                                            const expiry = vendor.compliance?.insuranceExpiry || vendor.compliance?.coiExpiry;
-                                            const isExpired = expiry && new Date(expiry) < new Date();
-                                            const isValid = hasInsurance && expiry && !isExpired;
-
-                                            let tooltip = "Insurance Missing";
-                                            if (hasInsurance && isExpired) tooltip = `Insurance Expired (${new Date(expiry!).toLocaleDateString()})`;
-                                            else if (isValid) tooltip = `Insurance Verified (Exp: ${new Date(expiry!).toLocaleDateString()})`;
-
-                                            return (
-                                                <div
-                                                    className={`p-1.5 rounded-lg border transition-colors ${isValid ? 'bg-emerald-50 border-emerald-200 text-emerald-600' : hasInsurance && isExpired ? 'bg-red-50 border-red-200 text-red-500' : 'bg-slate-50 border-slate-100 text-slate-300'}`}
-                                                    title={tooltip}
-                                                >
-                                                    <ShieldCheck size={16} />
-                                                </div>
-                                            );
-                                        })()}
-
-                                        {/* LLC Indicator */}
-                                        <div
-                                            className={`p-1.5 rounded-lg border transition-colors ${vendor.compliance?.isLLC ? 'bg-indigo-50 border-indigo-200 text-indigo-600' : 'bg-slate-50 border-slate-100 text-slate-300'}`}
-                                            title={vendor.compliance?.isLLC ? "LLC Registered" : "Sole Proprietor / Other"}
-                                        >
-                                            <Building2 size={16} />
-                                        </div>
-
-                                        {/* W-9 Indicator */}
-                                        <div
-                                            className={`p-1.5 rounded-lg border transition-colors ${vendor.compliance?.w9Signed || vendor.compliance?.w9OnFile ? 'bg-emerald-50 border-emerald-200 text-emerald-600' : 'bg-slate-50 border-slate-100 text-slate-300'}`}
-                                            title={vendor.compliance?.w9Signed || vendor.compliance?.w9OnFile ? "W-9 Signed & On File" : "W-9 Missing"}
-                                        >
-                                            <FileText size={16} />
-                                        </div>
-
-                                        {/* Contract Indicator (Existing) */}
-                                        <div
-                                            className={`p-1.5 rounded-lg border transition-colors ${vendor.status === 'Active' ? 'bg-blue-50 border-blue-200 text-blue-600' : 'bg-slate-50 border-slate-100 text-slate-300'}`}
-                                            title={vendor.status === 'Active' ? "Contract Fully Executed" : "Contract Pending"}
-                                        >
-                                            <FileCheck size={16} />
-                                        </div>
-                                    </div>
-                                </td>
-                                <td className="px-6 py-4 text-center font-bold text-slate-700">
-                                    {vendor.rating?.toFixed(1) || '-'}
-                                </td>
-                                <td className="px-6 py-4 text-right">
-                                    <button
-                                        onClick={(e) => handleEditVendor(vendor, e)}
-                                        className="p-2 hover:bg-slate-200 rounded-lg text-slate-400 hover:text-indigo-600 transition-colors"
-                                        title="Edit Vendor"
-                                    >
-                                        <Edit size={16} />
-                                    </button>
-                                    {vendor.status === 'New' && (
-                                        <button
-                                            onClick={async (e) => {
-                                                e.stopPropagation();
-                                                if (confirm(`Start outreach sequence for ${vendor.name}?`)) {
-                                                    try {
-                                                        await api.startOutreachSequence(vendor.id || '');
-                                                        alert('Outreach sequence started!');
-                                                        fetchVendors(); // Refresh to show new status
-                                                    } catch (err) {
-                                                        console.error(err);
-                                                        alert('Failed to start outreach.');
-                                                    }
-                                                }
-                                            }}
-                                            className="p-2 hover:bg-indigo-100 rounded-lg text-slate-400 hover:text-indigo-600 transition-colors"
-                                            title="Start Outreach Sequence"
-                                        >
-                                            <Mail size={16} />
-                                        </button>
-                                    )}
-                                </td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
-            </div>
-        );
-    };
+    const handleDrillDown = useCallback((status?: string) => {
+        setView('accounts', status);
+    }, []);
 
     return (
-        <div className="min-h-screen bg-xiri-background p-6 font-sans">
-            <header className="flex justify-between items-center mb-8">
-                <div>
-                    <h1 className="text-3xl font-bold text-xiri-primary tracking-tight">Recruiter Workspace</h1>
-                    <p className="text-slate-500">Find, vet, and onboard service partners.</p>
-                </div>
-                <div className="flex gap-4 items-center">
-                    <div className="px-4 py-2 bg-indigo-50 text-indigo-600 rounded-xl text-sm font-bold border border-indigo-100">
-                        {user?.email}
+        <div className="min-h-screen bg-slate-50 p-4 font-sans max-w-[1600px] mx-auto">
+            <LoadingBar isLoading={loadingVendors || loadingActivities || loadingSearch || importing} />
+            <header className="flex justify-between items-center mb-3">
+                <div className="flex items-center gap-3">
+                    <div className="p-1.5 bg-indigo-600 rounded text-white shadow-sm">
+                        <Building2 size={20} />
                     </div>
+                    <div>
+                        <div className="flex items-center gap-2">
+                            <h1 className="text-[18px] font-bold text-slate-900 tracking-tight">Recruiter Operations</h1>
+                            <span className="px-1.5 py-0.5 bg-indigo-50 text-indigo-700 text-[10px] font-bold uppercase tracking-wider rounded border border-indigo-100">Ops</span>
+                        </div>
+                        <p className="text-[11px] text-slate-400 font-medium">Build and manage your vendor network.</p>
+                    </div>
+                </div>
+                <div className="flex gap-2 items-center">
+                    <div className="px-3 py-1 bg-white text-slate-500 rounded text-[12px] font-semibold border border-slate-200 shadow-sm">{user?.email}</div>
                     <LogoutButton />
                 </div>
             </header>
 
-            {/* Navigation Tabs */}
-            <div className="flex gap-2 mb-8 border-b border-slate-100 pb-1 overflow-x-auto">
-                <button
-                    onClick={() => setActiveTab('dashboard')}
-                    className={`flex items-center gap-2 px-6 py-3 rounded-t-xl text-sm font-bold transition-all ${activeTab === 'dashboard'
-                        ? 'bg-white text-indigo-600 shadow-sm border border-b-0 border-slate-100 translate-y-px'
-                        : 'text-slate-400 hover:text-slate-600 hover:bg-slate-50'
-                        }`}
-                >
-                    <LayoutDashboard size={18} /> Dashboard
-                </button>
-                <button
-                    onClick={() => setActiveTab('pipeline')}
-                    className={`flex items-center gap-2 px-6 py-3 rounded-t-xl text-sm font-bold transition-all ${activeTab === 'pipeline'
-                        ? 'bg-white text-indigo-600 shadow-sm border border-b-0 border-slate-100 translate-y-px'
-                        : 'text-slate-400 hover:text-slate-600 hover:bg-slate-50'
-                        }`}
-                >
-                    <Kanban size={18} /> Pipeline
-                </button>
-                <button
-                    onClick={() => setActiveTab('accounts')}
-                    className={`flex items-center gap-2 px-6 py-3 rounded-t-xl text-sm font-bold transition-all ${activeTab === 'accounts'
-                        ? 'bg-white text-indigo-600 shadow-sm border border-b-0 border-slate-100 translate-y-px'
-                        : 'text-slate-400 hover:text-slate-600 hover:bg-slate-50'
-                        }`}
-                >
-                    <List size={18} /> All Vendors
-                </button>
-                <button
-                    onClick={() => setActiveTab('search')}
-                    className={`flex items-center gap-2 px-6 py-3 rounded-t-xl text-sm font-bold transition-all ${activeTab === 'search'
-                        ? 'bg-purple-50 text-purple-600 shadow-sm border border-b-0 border-purple-100 translate-y-px'
-                        : 'text-slate-400 hover:text-purple-600 hover:bg-purple-50'
-                        }`}
-                >
-                    <Search size={18} /> AI Search
-                </button>
+            <div className="flex gap-1 mb-3 border-b border-slate-200 overflow-x-auto select-none">
+                {[
+                    { id: 'dashboard', icon: LayoutDashboard, label: 'Performance' },
+                    { id: 'pipeline', icon: Kanban, label: 'Outreach' },
+                    { id: 'accounts', icon: List, label: 'Directory' },
+                    { id: 'search', icon: Search, label: 'Hunter' }
+                ].map(tab => (
+                    <button
+                        key={tab.id}
+                        onClick={() => setView(tab.id)}
+                        className={`px-4 py-1.5 rounded-t text-[11px] font-bold uppercase transition-all flex items-center gap-2 border-x border-t border-transparent ${activeView === tab.id
+                            ? 'bg-white border-slate-200 text-indigo-600 shadow-[0_-2px_0_0_#4f46e5] -mb-[1px] z-10'
+                            : 'text-slate-400 hover:bg-slate-100 hover:text-slate-600'
+                            }`}
+                    >
+                        <tab.icon size={14} /> {tab.label}
+                    </button>
+                ))}
             </div>
 
-            {/* Content Area */}
-            <div className="max-w-7xl mx-auto">
-                {activeTab === 'dashboard' && <DashboardTab />}
-                {activeTab === 'pipeline' && <PipelineTab />}
-                {activeTab === 'accounts' && <AccountsTab />}
-
-                {activeTab === 'search' && (
-                    <>
-                        <div className="bg-white p-8 rounded-[2rem] shadow-xl border border-slate-100 mb-8">
-                            <div className="flex items-center gap-3 mb-6">
-                                <div className="p-3 bg-purple-100 text-purple-600 rounded-2xl">
-                                    <Search size={24} />
-                                </div>
-                                <div>
-                                    <h2 className="text-xl font-bold text-slate-800">AI Vendor Sourcing</h2>
-                                    <p className="text-slate-500 text-sm">Find and vet local professionals.</p>
-                                </div>
-                            </div>
-
-                            <div className="flex gap-4">
-                                <input
-                                    type="text"
-                                    placeholder="Zip Code (e.g. 10001)"
-                                    className="flex-1 px-5 py-4 bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-700 outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all placeholder:font-medium placeholder:text-slate-400"
-                                    value={zipCode}
-                                    onChange={(e) => setZipCode(e.target.value)}
-                                />
-                                <input
-                                    type="text"
-                                    placeholder="Trade (e.g. Commercial HVAC)"
-                                    className="flex-[2] px-5 py-4 bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-700 outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all placeholder:font-medium placeholder:text-slate-400"
-                                    value={trade}
-                                    onChange={(e) => setTrade(e.target.value)}
-                                />
-                                <button
-                                    onClick={handleScrape}
-                                    disabled={loadingSearch || !zipCode || !trade}
-                                    className="px-8 py-4 bg-purple-600 text-white font-bold rounded-xl hover:bg-purple-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-purple-200"
-                                >
-                                    {loadingSearch ? <Loader2 className="animate-spin" /> : 'Run AI Search'}
+            <div className="max-w-[1550px] mx-auto">
+                {activeView === 'dashboard' && <RecruiterDashboardTab vendors={vendors} activities={activities} loadingActivities={loadingActivities} onDrillDown={handleDrillDown} />}
+                {activeView === 'pipeline' && <RecruiterPipelineTab vendors={vendors} onUpdateStatus={handleUpdateStatus} onLaunchSequence={handleLaunchSequence} />}
+                {activeView === 'accounts' && (
+                    <div className="space-y-3">
+                        {statusFilter && (
+                            <div className="flex items-center gap-2 px-3 py-1.5 bg-indigo-50 border border-indigo-100 rounded self-start w-fit">
+                                <span className="text-[11px] font-bold text-indigo-700 uppercase tracking-tight">Filtered by: {statusFilter}</span>
+                                <button onClick={clearFilters} className="p-0.5 hover:bg-indigo-100 rounded text-indigo-400 hover:text-indigo-600 transition-colors">
+                                    <X size={12} />
                                 </button>
                             </div>
-                        </div>
-
-                        {/* Results Table */}
-                        {searchResults.length > 0 && (
-                            <div className="bg-white rounded-[2rem] shadow-xl border border-slate-100 overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-500">
-                                <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
-                                    <h3 className="font-bold text-slate-700">Found {searchResults.length} Potential Vendors</h3>
-                                    {selectedIndices.length > 0 && (
-                                        <div className="flex gap-3">
-                                            <button
-                                                onClick={handleBulkReject}
-                                                disabled={importing}
-                                                className="flex items-center gap-2 px-6 py-2 bg-slate-100 text-slate-600 rounded-xl font-bold hover:bg-slate-200 transition-all text-sm"
-                                            >
-                                                <X size={18} />
-                                                Reject ({selectedIndices.length})
-                                            </button>
-                                            <button
-                                                onClick={handleBulkImport}
-                                                disabled={importing}
-                                                className="flex items-center gap-2 px-6 py-2 bg-emerald-500 text-white rounded-xl font-bold hover:bg-emerald-600 transition-all shadow-lg shadow-emerald-200 text-sm"
-                                            >
-                                                {importing ? <Loader2 className="animate-spin" size={16} /> : <UserPlus size={18} />}
-                                                Add Selected ({selectedIndices.length})
-                                            </button>
-                                        </div>
-                                    )}
-                                </div>
-
-                                <div className="overflow-x-auto">
-                                    <table className="w-full">
-                                        <thead>
-                                            <tr className="border-b border-slate-100 text-left text-xs font-bold text-slate-400 uppercase tracking-widest bg-slate-50/30">
-                                                <th className="px-8 py-4 w-16 text-center">Select</th>
-                                                <th className="px-8 py-4">Company</th>
-                                                <th className="px-8 py-4">Contact</th>
-                                                <th className="px-8 py-4 w-1/3">AI Analysis</th>
-                                                <th className="px-8 py-4 text-center">Rating</th>
-                                                <th className="px-8 py-4 text-right">Action</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody className="divide-y divide-slate-100 text-sm">
-                                            {searchResults.map((v, i) => (
-                                                <tr key={i} className={`hover:bg-slate-50/80 transition-colors ${selectedIndices.includes(i) ? 'bg-purple-50/30' : ''}`}>
-                                                    <td className="px-8 py-5 text-center">
-                                                        <input
-                                                            type="checkbox"
-                                                            checked={selectedIndices.includes(i)}
-                                                            onChange={() => toggleSelection(i)}
-                                                            className="w-5 h-5 rounded border-slate-300 text-purple-600 focus:ring-purple-500 cursor-pointer"
-                                                        />
-                                                    </td>
-                                                    <td className="px-8 py-5">
-                                                        <div className="font-bold text-slate-700">{v.companyName}</div>
-                                                        <div className="text-xs text-slate-400 mt-1">{v.address}</div>
-                                                        {v.website && (
-                                                            <a href={v.website} target="_blank" rel="noopener noreferrer" className="text-xs text-purple-500 hover:underline mt-1 block truncate max-w-[200px]">
-                                                                {v.website}
-                                                            </a>
-                                                        )}
-                                                    </td>
-                                                    <td className="px-8 py-5">
-                                                        {v.phone && <div className="text-slate-600">{v.phone}</div>}
-                                                        {v.email && <div className="text-slate-400 text-xs mt-1">{v.email}</div>}
-                                                    </td>
-                                                    <td className="px-8 py-5">
-                                                        {v.confidenceScore && (
-                                                            <div className="flex items-center gap-2 mb-2">
-                                                                <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${v.confidenceScore > 1.7 ? 'bg-indigo-100 text-indigo-700' :
-                                                                    v.confidenceScore > 1.4 ? 'bg-purple-100 text-purple-700' :
-                                                                        'bg-slate-100 text-slate-500'
-                                                                    }`}>
-                                                                    AI Priority: {(v.confidenceScore * 5).toFixed(1)}/10
-                                                                </span>
-                                                                {v.source === 'multi_source' && (
-                                                                    <span className="bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded text-[10px] font-bold uppercase">Verified Source</span>
-                                                                )}
-                                                            </div>
-                                                        )}
-                                                        <p className="text-xs text-slate-600 leading-relaxed line-clamp-3 hover:line-clamp-none cursor-pointer italic border-l-2 border-slate-100 pl-3">
-                                                            {v.aiSummary || "Scraping deep intelligence..."}
-                                                        </p>
-                                                    </td>
-                                                    <td className="px-8 py-5 text-center font-bold text-slate-700">
-                                                        {v.rating ? v.rating.toFixed(1) : '-'}
-                                                    </td>
-                                                    <td className="px-8 py-5 text-right">
-                                                        <div className="flex gap-2 justify-end">
-                                                            <button
-                                                                onClick={() => handleSingleReject(i)}
-                                                                className="p-2 hover:bg-slate-200 rounded-lg text-slate-400 hover:text-red-500 transition-colors"
-                                                                title="Reject"
-                                                            >
-                                                                <X size={18} />
-                                                            </button>
-                                                            <button
-                                                                onClick={() => handleSingleAdd(i)}
-                                                                className="p-2 hover:bg-emerald-100 rounded-lg text-emerald-600 transition-colors"
-                                                                title="Add"
-                                                            >
-                                                                <UserPlus size={18} />
-                                                            </button>
-                                                        </div>
-                                                    </td>
-                                                </tr>
-                                            ))}
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
                         )}
-                    </>
-                )}
-
-                {activeTab !== 'search' && activeTab !== 'dashboard' && activeTab !== 'pipeline' && activeTab !== 'accounts' && (
-                    <div className="text-center py-20 text-slate-400">
-                        <p>Module not found.</p>
+                        <RecruiterAccountsTab
+                            vendors={statusFilter ? vendors.filter(v => v.status === statusFilter) : vendors}
+                            onAddVendor={handleAddVendor}
+                            onEditVendor={handleEditVendor}
+                            onUpdateStatus={handleUpdateStatus}
+                            onLaunchSequence={handleLaunchSequence}
+                        />
                     </div>
+                )}
+                {activeView === 'search' && (
+                    <RecruiterSearchTab
+                        zipCode={zipCode}
+                        setZipCode={setZipCode}
+                        trade={trade}
+                        setTrade={setTrade}
+                        handleScrape={handleScrape}
+                        loadingSearch={loadingSearch}
+                        searchResults={searchResults}
+                        selectedIndices={selectedIndices}
+                        toggleSelection={toggleSelection}
+                        handleBulkImport={handleBulkImport}
+                        importing={importing}
+                        handleSingleAdd={handleSingleAdd}
+                    />
                 )}
             </div>
 
-            <VendorModal
-                isOpen={isModalOpen}
-                onClose={() => setIsModalOpen(false)}
-                onSave={handleSaveVendor}
-                initialData={editingVendor}
-            />
+            <VendorModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} onSave={handleSaveVendor} initialData={editingVendor} />
         </div>
     );
 };
