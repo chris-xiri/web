@@ -17,6 +17,7 @@ const AccountDetailView = () => {
     const navigate = useNavigate();
     const [account, setAccount] = useState<Account | null>(null);
     const [loading, setLoading] = useState(true);
+    const [activeTab, setActiveTab] = useState('overview');
 
     useEffect(() => {
         const fetchAccount = async () => {
@@ -37,7 +38,7 @@ const AccountDetailView = () => {
     if (loading) return <div className="flex h-screen items-center justify-center"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-slate-800"></div></div>;
     if (!account) return <div className="p-8 text-center text-slate-500">Account not found</div>;
 
-    const [activeTab, setActiveTab] = useState('overview');
+
 
     // Stats for the header
     const healthColor = account?.status === 'Active' ? 'text-emerald-500 bg-emerald-50' : 'text-slate-400 bg-slate-100';
