@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react';
 import { api } from '../services/api';
 import { useAuth } from '../context/AuthContext';
-import { Search, Building2, UserPlus, CheckCircle2, X, Loader2, LayoutDashboard, List, Kanban, Phone, FileCheck, ShieldCheck, Mail, MapPin, Star, MoreVertical } from 'lucide-react';
+import { Search, Building2, UserPlus, CheckCircle2, X, Loader2, LayoutDashboard, List, Kanban, Phone, FileCheck, ShieldCheck, Mail, MapPin, Star, MoreVertical, Plus, Edit } from 'lucide-react';
 import LogoutButton from '../components/LogoutButton';
 import { useNavigate } from 'react-router-dom';
 import type { Account, Vendor } from '../types';
-
+import VendorModal from '../components/VendorModal';
 
 
 const RecruiterView = () => {
@@ -16,6 +16,10 @@ const RecruiterView = () => {
     // CRM Data State
     const [vendors, setVendors] = useState<Account[]>([]);
     const [loadingVendors, setLoadingVendors] = useState(false);
+
+    // Modal State
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [editingVendor, setEditingVendor] = useState<Account | undefined>(undefined);
 
     // Search State
     const [zipCode, setZipCode] = useState('');
@@ -95,6 +99,33 @@ const RecruiterView = () => {
     // Single row actions
     const handleSingleAdd = (index: number) => processLeads([index], 'New');
     const handleSingleReject = (index: number) => processLeads([index], 'Rejected');
+
+    // Modal Handlers
+    const handleAddVendor = () => {
+        setEditingVendor(undefined);
+        setIsModalOpen(true);
+    };
+
+    const handleEditVendor = (vendor: Account, e: React.MouseEvent) => {
+        e.stopPropagation(); // prevent row click navigation
+        setEditingVendor(vendor);
+        setIsModalOpen(true);
+    };
+
+    const handleSaveVendor = async (data: Partial<Account>) => {
+        try {
+            if (editingVendor && editingVendor.id) {
+                await api.updateVendor(editingVendor.id, data);
+            } else {
+                await api.createVendor(data);
+            }
+            fetchVendors();
+        } catch (error) {
+            console.error("Failed to save vendor", error);
+            alert("Failed to save vendor");
+        }
+    };
+
 
     // --- Sub-Components ---
 
@@ -182,6 +213,15 @@ const RecruiterView = () => {
     const AccountsTab = () => {
         return (
             <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+                <div className="p-6 border-b border-slate-100 flex justify-between items-center">
+                    <h3 className="font-bold text-slate-800 text-lg">All Vendors</h3>
+                    <button
+                        onClick={handleAddVendor}
+                        className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-xl font-bold text-sm hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-200"
+                    >
+                        <Plus size={18} /> Add Vendor
+                    </button>
+                </div>
                 <table className="w-full">
                     <thead>
                         <tr className="bg-slate-50 border-b border-slate-200 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">
@@ -189,7 +229,8 @@ const RecruiterView = () => {
                             <th className="px-6 py-4">Status</th>
                             <th className="px-6 py-4">Contact</th>
                             <th className="px-6 py-4">Compliance & Contract</th>
-                            <th className="px-6 py-4 text-right">Rating</th>
+                            <th className="px-6 py-4 text-center">Rating</th>
+                            <th className="px-6 py-4 text-right">Actions</th>
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100">
@@ -238,8 +279,16 @@ const RecruiterView = () => {
                                         </div>
                                     </div>
                                 </td>
-                                <td className="px-6 py-4 text-right font-bold text-slate-700">
+                                <td className="px-6 py-4 text-center font-bold text-slate-700">
                                     {vendor.rating?.toFixed(1) || '-'}
+                                </td>
+                                <td className="px-6 py-4 text-right">
+                                    <button
+                                        onClick={(e) => handleEditVendor(vendor, e)}
+                                        className="p-2 hover:bg-slate-200 rounded-lg text-slate-400 hover:text-indigo-600 transition-colors"
+                                    >
+                                        <Edit size={16} />
+                                    </button>
                                 </td>
                             </tr>
                         ))}
@@ -453,6 +502,13 @@ const RecruiterView = () => {
                     </div>
                 )}
             </div>
+
+            <VendorModal
+                isOpen={isModalOpen}
+                onClose={() => setIsModalOpen(false)}
+                onSave={handleSaveVendor}
+                initialData={editingVendor}
+            />
         </div>
     );
 };

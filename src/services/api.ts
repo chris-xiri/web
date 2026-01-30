@@ -27,6 +27,15 @@ export const api = {
         return response.json();
     },
 
+    createVendor: async (data: any) => {
+        const response = await fetch(`${API_URL}/vendors`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data),
+        });
+        return response.json();
+    },
+
     updateVendor: async (vendorId: string, updates: any) => {
         const response = await fetch(`${API_URL}/vendors/${vendorId}`, {
             method: 'PUT',
