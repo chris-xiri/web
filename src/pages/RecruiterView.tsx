@@ -688,8 +688,21 @@ const RecruiterView = () => {
                                                         {v.email && <div className="text-slate-400 text-xs mt-1">{v.email}</div>}
                                                     </td>
                                                     <td className="px-8 py-5">
-                                                        <p className="text-xs text-slate-500 leading-relaxed line-clamp-3 hover:line-clamp-none cursor-pointer">
-                                                            {v.aiSummary || "Processing content..."}
+                                                        {v.confidenceScore && (
+                                                            <div className="flex items-center gap-2 mb-2">
+                                                                <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${v.confidenceScore > 1.7 ? 'bg-indigo-100 text-indigo-700' :
+                                                                        v.confidenceScore > 1.4 ? 'bg-purple-100 text-purple-700' :
+                                                                            'bg-slate-100 text-slate-500'
+                                                                    }`}>
+                                                                    AI Priority: {(v.confidenceScore * 5).toFixed(1)}/10
+                                                                </span>
+                                                                {v.source === 'multi_source' && (
+                                                                    <span className="bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded text-[10px] font-bold uppercase">Verified Source</span>
+                                                                )}
+                                                            </div>
+                                                        )}
+                                                        <p className="text-xs text-slate-600 leading-relaxed line-clamp-3 hover:line-clamp-none cursor-pointer italic border-l-2 border-slate-100 pl-3">
+                                                            {v.aiSummary || "Scraping deep intelligence..."}
                                                         </p>
                                                     </td>
                                                     <td className="px-8 py-5 text-center font-bold text-slate-700">

@@ -47,7 +47,8 @@ export interface RawLead {
     rating?: number;
     trades?: string[];
     aiSummary?: string;
-    source: 'google_maps';
+    source: 'google_maps' | 'yellow_pages' | 'multi_source';
+    confidenceScore?: number;
     scrapedAt: string;
 }
 
@@ -97,6 +98,7 @@ export interface Account {
     // Metadata
     ownerId?: string;
     aiContextSummary?: string;
+    confidenceScore?: number;
     createdAt?: Date | string;
     updatedAt?: Date | string;
 }
