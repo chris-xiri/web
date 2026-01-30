@@ -9,26 +9,34 @@ import { api } from '../services/api'; // We'll need to add getAccountDetails he
 import type { Account, Contact, Activity } from '../types';
 
 // Mock data until we connect real getAccountDetails
-const MOCK_ACCOUNT: Account = {
-    id: '1',
-    name: 'Acme Facilities Demo',
-    type: 'prospect',
-    status: 'Active',
-    rating: 4.5,
-    industry: 'Property Management',
-    website: 'https://acme.demo',
-    phone: '(555) 123-4567',
-    email: 'contact@acme.demo',
-    address: { fullNumber: '123 Business Rd, Tech City, CA' },
-    sqFt: 50000,
-    aiContextSummary: 'Leading provider of commercial real estate management in the bay area.',
-    updatedAt: new Date().toISOString()
-};
+// Mock data removed
+
 
 const AccountDetailView = () => {
     const { id } = useParams();
     const navigate = useNavigate();
-    const [account, setAccount] = useState<Account | null>(MOCK_ACCOUNT);
+    const [account, setAccount] = useState<Account | null>(null);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchAccount = async () => {
+            if (!id) return;
+            try {
+                // Temporary: fetch all and find by ID until dedicated endpoint is ready
+                const res = await api.getVendors('vendor');
+                const found = res.data?.find((a: Account) => a.id === id);
+                if (found) setAccount(found);
+            } catch (err) {
+                console.error(err);
+            }
+            setLoading(false);
+        };
+        fetchAccount();
+    }, [id]);
+
+    if (loading) return <div className="flex h-screen items-center justify-center"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-slate-800"></div></div>;
+    if (!account) return <div className="p-8 text-center text-slate-500">Account not found</div>;
+
     const [activeTab, setActiveTab] = useState('overview');
 
     // Stats for the header

@@ -3,10 +3,14 @@ import { api } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { Search, Building2, UserPlus, CheckCircle2, X, Loader2, LayoutDashboard, List, Kanban, Phone, FileCheck, ShieldCheck, Mail, MapPin, Star, MoreVertical } from 'lucide-react';
 import LogoutButton from '../components/LogoutButton';
+import { useNavigate } from 'react-router-dom';
 import type { Account, Vendor } from '../types';
+
+import { useNavigate } from 'react-router-dom';
 
 const RecruiterView = () => {
     const { user } = useAuth();
+    const navigate = useNavigate();
     const [activeTab, setActiveTab] = useState<'dashboard' | 'accounts' | 'pipeline' | 'search'>('dashboard');
 
     // CRM Data State
@@ -190,7 +194,7 @@ const RecruiterView = () => {
                     </thead>
                     <tbody className="divide-y divide-slate-100">
                         {vendors.filter(v => v.status !== 'Rejected').map((vendor) => (
-                            <tr key={vendor.id} className="hover:bg-slate-50/50 transition-colors">
+                            <tr key={vendor.id} onClick={() => navigate(`/account/${vendor.id}`)} className="hover:bg-slate-50/50 transition-colors cursor-pointer group">
                                 <td className="px-6 py-4">
                                     <div className="font-bold text-slate-800">{vendor.name}</div>
                                     <div className="text-xs text-slate-500 flex items-center gap-1 mt-1">
