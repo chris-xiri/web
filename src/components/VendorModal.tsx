@@ -248,4 +248,79 @@ const VendorModal = ({ isOpen, onClose, onSave, initialData }: VendorModalProps)
                                     <input
                                         type="checkbox"
                                         className="w-5 h-5 rounded-md border-slate-300 text-indigo-600 focus:ring-indigo-500"
-                                        checked={formData.compliance?
+                                        checked={formData.compliance?.w9Signed || false}
+                                        onChange={e => updateCompliance('w9Signed', e.target.checked)}
+                                    />
+                                    <span className="text-sm font-medium text-slate-700">W-9 Signed / Received</span>
+                                </label>
+                            </div>
+
+                            <div className="space-y-4">
+                                <div className="space-y-1">
+                                    <label className="text-sm font-bold text-slate-700 flex items-center gap-2">
+                                        <Calendar size={14} /> Insurance Expiration
+                                    </label>
+                                    <input
+                                        type="date"
+                                        className="w-full px-4 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 outline-none transition-all"
+                                        value={formData.compliance?.insuranceExpiry ? (typeof formData.compliance.insuranceExpiry === 'string' ? formData.compliance.insuranceExpiry.split('T')[0] : formData.compliance.insuranceExpiry.toISOString().split('T')[0]) : ''}
+                                        onChange={e => updateCompliance('insuranceExpiry', e.target.value)}
+                                    />
+                                </div>
+
+                                <div className="space-y-2">
+                                    <label className="text-sm font-bold text-slate-700 flex items-center gap-2">
+                                        <FileText size={14} /> Documents
+                                    </label>
+                                    <div className="space-y-2">
+                                        {formData.complianceDocs && formData.complianceDocs.length > 0 ? (
+                                            formData.complianceDocs.map((doc, idx) => (
+                                                <a
+                                                    key={idx}
+                                                    href={doc.url}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="flex items-center justify-between p-2 bg-white rounded-lg border border-slate-200 text-xs text-indigo-600 font-medium hover:bg-slate-50 transition-all"
+                                                >
+                                                    <span className="flex items-center gap-2">
+                                                        <FileText size={12} className="text-slate-400" />
+                                                        {doc.name}
+                                                    </span>
+                                                    <ExternalLink size={12} />
+                                                </a>
+                                            ))
+                                        ) : (
+                                            <div className="text-[10px] text-slate-400 italic p-3 border border-dashed border-slate-200 rounded-xl text-center">
+                                                No documents uploaded yet.
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="flex justify-end gap-3 pt-4 border-t border-slate-100">
+                        <button
+                            type="button"
+                            onClick={onClose}
+                            className="px-6 py-2.5 rounded-xl font-bold text-slate-500 hover:bg-slate-100 transition-all"
+                        >
+                            Cancel
+                        </button>
+                        <button
+                            type="submit"
+                            disabled={loading}
+                            className="px-6 py-2.5 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-200 flex items-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
+                        >
+                            {loading ? <Loader2 size={18} className="animate-spin" /> : <Save size={18} />}
+                            {initialData ? 'Save Changes' : 'Create Vendor'}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    );
+};
+
+export default VendorModal;

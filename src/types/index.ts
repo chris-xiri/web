@@ -49,6 +49,7 @@ export interface RawLead {
     aiSummary?: string;
     source: 'google_maps' | 'yellow_pages' | 'multi_source';
     confidenceScore?: number;
+    yearEstablished?: number;
     scrapedAt: string;
 }
 
@@ -99,6 +100,8 @@ export interface Account {
     ownerId?: string;
     aiContextSummary?: string;
     confidenceScore?: number;
+    yearEstablished?: number;
+    vettingNotes?: string;
     createdAt?: Date | string;
     updatedAt?: Date | string;
 }

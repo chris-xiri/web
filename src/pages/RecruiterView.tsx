@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { api } from '../services/api';
 import { useAuth } from '../context/AuthContext';
-import { Search, Building2, UserPlus, CheckCircle2, X, Loader2, LayoutDashboard, List, Kanban, Phone, FileCheck, ShieldCheck, Mail, MapPin, Star, MoreVertical, Plus, Edit, Clock, AlertCircle, FileText } from 'lucide-react';
+import { Search, Building2, UserPlus, CheckCircle2, X, Loader2, LayoutDashboard, List, Kanban, Phone, FileCheck, ShieldCheck, Mail, MapPin, Star, MoreVertical, Plus, Edit, Clock, AlertCircle, FileText, Award, ShieldAlert, Map } from 'lucide-react';
 import LogoutButton from '../components/LogoutButton';
 import { useNavigate } from 'react-router-dom';
 import type { Account, Vendor, Activity } from '../types';
@@ -151,6 +151,7 @@ const RecruiterView = () => {
             { label: 'New Leads', value: vendors.filter(v => v.status === 'New').length, icon: UserPlus, color: 'text-emerald-600', bg: 'bg-emerald-50' },
             { label: 'Active', value: vendors.filter(v => v.status === 'Active').length, icon: CheckCircle2, color: 'text-blue-600', bg: 'bg-blue-50' },
             { label: 'Vetting', value: vendors.filter(v => v.status === 'Vetting').length, icon: ShieldCheck, color: 'text-amber-600', bg: 'bg-amber-50' },
+            { label: 'Local Market Density', value: 'Moderate', icon: Map, color: 'text-purple-600', bg: 'bg-purple-50', subtext: 'Based on last search' },
         ];
 
         return (
@@ -291,10 +292,30 @@ const RecruiterView = () => {
                                 {stageVendors.map(vendor => (
                                     <div key={vendor.id} className="bg-white p-4 rounded-xl border border-slate-100 shadow-sm hover:shadow-md transition-all cursor-pointer group relative border-l-4 border-l-transparent hover:border-l-indigo-500">
                                         <div className="flex justify-between items-start mb-1">
-                                            <h4 className="font-bold text-slate-800 line-clamp-1 group-hover:text-indigo-600 transition-colors">{vendor.name}</h4>
+                                            <h4 className="font-bold text-slate-800 line-clamp-1 group-hover:text-indigo-600 transition-colors uppercase tracking-tight">{vendor.name}</h4>
                                         </div>
-                                        {vendor.trades && vendor.trades.length > 0 && (
-                                            <div className="text-[10px] font-bold text-slate-400 uppercase tracking-tight mb-3 px-1.5 py-0.5 bg-slate-50 rounded w-fit">{vendor.trades[0]}</div>
+
+                                        <div className="flex gap-2 mb-3">
+                                            {vendor.trades && vendor.trades.length > 0 && (
+                                                <div className="text-[10px] font-bold text-slate-400 uppercase tracking-tight px-1.5 py-0.5 bg-slate-50 rounded border border-slate-100">{vendor.trades[0]}</div>
+                                            )}
+                                            {vendor.yearEstablished && (new Date().getFullYear() - vendor.yearEstablished >= 10) && (
+                                                <div className="text-[10px] font-bold text-amber-600 uppercase tracking-tight px-1.5 py-0.5 bg-amber-50 rounded border border-amber-100 flex items-center gap-1">
+                                                    <Award size={10} /> Legacy
+                                                </div>
+                                            )}
+                                        </div>
+
+                                        {/* Vetting Alert */}
+                                        {vendor.status === 'Vetting' && vendor.vettingNotes && (
+                                            <div className="mb-4 bg-amber-50 border border-amber-200 rounded-xl p-3">
+                                                <div className="flex items-center gap-2 text-amber-700 font-bold text-[10px] uppercase mb-1">
+                                                    <ShieldAlert size={12} /> Automated Vetting Report
+                                                </div>
+                                                <p className="text-[11px] text-amber-800 leading-tight italic line-clamp-3">
+                                                    {vendor.vettingNotes}
+                                                </p>
+                                            </div>
                                         )}
 
                                         {/* Outreach Progress Badge */}
@@ -410,10 +431,22 @@ const RecruiterView = () => {
                         {vendors.filter(v => v.status !== 'Rejected').map((vendor) => (
                             <tr key={vendor.id} onClick={() => navigate(`/account/${vendor.id}`)} className="hover:bg-slate-50/50 transition-colors cursor-pointer group">
                                 <td className="px-6 py-4">
-                                    <div className="font-bold text-slate-800">{vendor.name}</div>
+                                    <div className="flex items-center gap-2 font-bold text-slate-800">
+                                        {vendor.name}
+                                        {vendor.yearEstablished && (new Date().getFullYear() - vendor.yearEstablished >= 10) && (
+                                            <span className="bg-amber-100 text-amber-700 text-[10px] px-2 py-0.5 rounded-full flex items-center gap-1">
+                                                <Award size={10} /> 10+ Years
+                                            </span>
+                                        )}
+                                    </div>
                                     <div className="text-xs text-slate-500 flex items-center gap-1 mt-1">
                                         <MapPin size={12} />
                                         {vendor.address?.fullNumber || vendor.address?.zipCode || 'No Address'}
+                                        {vendor.confidenceScore && vendor.confidenceScore > 1.5 && (
+                                            <span className="flex items-center gap-1 text-emerald-500 font-bold ml-1">
+                                                <ShieldCheck size={10} /> Verified
+                                            </span>
+                                        )}
                                     </div>
                                     {vendor.trades && vendor.trades.length > 0 && (
                                         <div className="flex gap-1 mt-2">
@@ -691,8 +724,8 @@ const RecruiterView = () => {
                                                         {v.confidenceScore && (
                                                             <div className="flex items-center gap-2 mb-2">
                                                                 <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${v.confidenceScore > 1.7 ? 'bg-indigo-100 text-indigo-700' :
-                                                                        v.confidenceScore > 1.4 ? 'bg-purple-100 text-purple-700' :
-                                                                            'bg-slate-100 text-slate-500'
+                                                                    v.confidenceScore > 1.4 ? 'bg-purple-100 text-purple-700' :
+                                                                        'bg-slate-100 text-slate-500'
                                                                     }`}>
                                                                     AI Priority: {(v.confidenceScore * 5).toFixed(1)}/10
                                                                 </span>
