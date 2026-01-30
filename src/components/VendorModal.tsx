@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { X, Save, Loader2, ShieldCheck, Building2, FileText, ExternalLink, Calendar } from 'lucide-react';
+import { X, Save, Loader2, ShieldCheck, ShieldAlert, Building2, FileText, ExternalLink, Calendar } from 'lucide-react';
 import type { Account } from '../types';
 
 interface VendorModalProps {

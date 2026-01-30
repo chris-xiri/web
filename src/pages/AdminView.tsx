@@ -16,17 +16,15 @@ const AdminView = () => {
         setLoading(true);
         try {
             const data = await api.scrapeVendors(zipCode, trade);
-            // Backend returns { message, data: Vendor[] }
             setResults(data.data || []);
         } catch (error) {
             console.error(error);
-            alert('Scraper deployment failed. This usually happens if the live search takes longer than 10 seconds. Try a more specific trade.');
+            alert('Scraper deployment failed.');
         }
         setLoading(false);
     };
 
     const handleApproveVendor = async (id: string, index: number) => {
-        // Optimistic UI: Update local state immediately
         const previousResults = [...results];
         const newResults = [...results];
         newResults[index] = { ...newResults[index], status: 'Active' as const };
@@ -36,7 +34,6 @@ const AdminView = () => {
             await api.updateVendor(id, { status: 'Active' });
         } catch (error) {
             console.error("Failed to approve vendor:", error);
-            // Rollback on error
             setResults(previousResults);
             alert("Failed to approve vendor. Please try again.");
         }
@@ -59,14 +56,12 @@ const AdminView = () => {
                 </header>
 
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
-                    {/* Search Panel */}
                     <div className="lg:col-span-3">
                         <div className="bg-white p-5 rounded-xl shadow-sm border border-slate-100 sticky top-4">
                             <div className="flex items-center gap-2 mb-4">
                                 <Search className="text-rose-500" size={18} />
                                 <h2 className="text-xs font-black text-slate-800 uppercase tracking-widest">Acquire Network</h2>
                             </div>
-
                             <div className="space-y-4">
                                 <div className="space-y-1">
                                     <label className="text-[9px] font-black text-slate-400 uppercase tracking-tighter">Target Zip</label>
@@ -92,19 +87,14 @@ const AdminView = () => {
                                 <button
                                     onClick={handleScrape}
                                     disabled={loading}
-                                    className="w-full bg-rose-600 text-white py-2.5 rounded-lg font-black text-[10px] uppercase tracking-widest hover:bg-rose-700 active:scale-[0.98] transition-all shadow-md shadow-rose-100 flex items-center justify-center gap-2 mt-2 disabled:opacity-70"
+                                    className="w-full bg-rose-600 text-white py-2.5 rounded-lg font-black text-[10px] uppercase tracking-widest hover:bg-rose-700 active:scale-[0.98] transition-all shadow-md shadow-rose-100 flex items-center justify-center gap-2 disabled:opacity-70"
                                 >
-                                    {loading ? (
-                                        <RefreshCw className="animate-spin" size={14} />
-                                    ) : (
-                                        <>Deploy Scraper</>
-                                    )}
+                                    {loading ? <RefreshCw className="animate-spin" size={14} /> : <>Deploy Scraper</>}
                                 </button>
                             </div>
                         </div>
                     </div>
 
-                    {/* Results Table */}
                     <div className="lg:col-span-9">
                         <div className="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
                             <div className="p-4 border-b border-slate-50 flex justify-between items-center bg-slate-50/20">
@@ -125,7 +115,7 @@ const AdminView = () => {
                                     </thead>
                                     <tbody className="divide-y divide-slate-50">
                                         {results.map((v, i) => (
-                                            <tr key={i} className="hover:bg-slate-50/30 transition-colors">
+                                            <tr key={v.id || i} className="hover:bg-slate-50/30 transition-colors">
                                                 <td className="px-6 py-3">
                                                     <div className="flex items-center gap-3">
                                                         <div className="w-8 h-8 bg-slate-50 rounded flex items-center justify-center text-slate-300 border border-slate-100">
@@ -134,20 +124,12 @@ const AdminView = () => {
                                                         <div>
                                                             <div className="font-bold text-slate-800 text-[11px] uppercase tracking-tight leading-tight">{v.companyName || v.name}</div>
                                                             <div className="text-[9px] font-black text-slate-400 uppercase tracking-tighter mt-0.5">{v.trades?.join(', ') || v.trade} • {zipCode}</div>
-                                                            <div className="flex gap-2 mt-1">
-                                                                {v.website && (
-                                                                    <a href={v.website} target="_blank" rel="noopener noreferrer" className="text-[9px] font-sans text-rose-500 hover:underline lowercase">
-                                                                        {v.website.replace(/^https?:\/\/(www\.)?/, '').split('/')[0]}
-                                                                    </a>
-                                                                )}
-                                                                {v.email && <div className="text-[9px] font-sans text-slate-400">{v.email}</div>}
-                                                            </div>
                                                         </div>
                                                     </div>
                                                 </td>
                                                 <td className="px-6 py-3">
                                                     <div className="max-w-md">
-                                                        <p className="text-[10px] text-slate-500 leading-snug italic line-clamp-2 hover:line-clamp-none cursor-pointer">
+                                                        <p className="text-[10px] text-slate-500 leading-snug italic line-clamp-2">
                                                             {v.aiContextSummary || "No AI summary available yet."}
                                                         </p>
                                                     </div>
@@ -162,7 +144,6 @@ const AdminView = () => {
                                                         <button
                                                             onClick={() => handleApproveVendor(v.id!, i)}
                                                             className="p-1.5 bg-slate-50 text-slate-300 rounded hover:bg-emerald-500 hover:text-white transition-all border border-slate-100"
-                                                            title="Approve"
                                                         >
                                                             <PlusCircle size={16} />
                                                         </button>
@@ -170,6 +151,7 @@ const AdminView = () => {
                                                 </td>
                                             </tr>
                                         ))}
+
                                         {results.length === 0 && !loading && (
                                             <tr>
                                                 <td colSpan={3} className="px-8 py-20 text-center">

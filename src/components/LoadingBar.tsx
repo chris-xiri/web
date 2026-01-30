@@ -9,7 +9,7 @@ const LoadingBar: React.FC<LoadingBarProps> = ({ isLoading }) => {
     const [visible, setVisible] = useState(false);
 
     useEffect(() => {
-        let interval: NodeJS.Timeout;
+        let interval: any;
 
         if (isLoading) {
             setVisible(true);

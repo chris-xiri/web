@@ -1,5 +1,4 @@
 import React, { memo } from 'react';
-
 import { useNavigate } from 'react-router-dom';
 import { Phone, Mail, Star } from 'lucide-react';
 import type { Account } from '../../types';
@@ -45,13 +44,6 @@ const SalesPipelineTab = ({ prospects, handleDragStart, handleDragOver, handleDr
                                     onClick={() => navigate(`/account/${prospect.id}`)}
                                 >
                                     <h4 className="font-bold text-slate-900 text-[12px] leading-tight mb-1 whitespace-normal break-words">{prospect.name}</h4>
-
-                                    <div className="flex flex-wrap gap-1 mb-2">
-                                        {prospect.industry && (
-                                            <span className="text-[9px] text-slate-400 font-bold uppercase tracking-tight">{prospect.industry}</span>
-                                        )}
-                                    </div>
-
                                     <div className="opacity-0 group-hover:opacity-100 transition-opacity">
                                         {(prospect.status === 'New' || !prospect.status) && (
                                             <button
@@ -61,7 +53,6 @@ const SalesPipelineTab = ({ prospects, handleDragStart, handleDragOver, handleDr
                                                 Move to Vetting
                                             </button>
                                         )}
-
                                         {prospect.status === 'Vetting' && (
                                             <button
                                                 onClick={(e) => { e.stopPropagation(); prospect.id && onUpdateStatus(prospect.id, 'Active'); }}
@@ -71,7 +62,6 @@ const SalesPipelineTab = ({ prospects, handleDragStart, handleDragOver, handleDr
                                             </button>
                                         )}
                                     </div>
-
                                     <div className="flex justify-between items-center pt-1.5 border-t border-slate-100">
                                         <div className="flex gap-2 text-slate-300">
                                             {prospect.phone && <Phone size={11} />}
