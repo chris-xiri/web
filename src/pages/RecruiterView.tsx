@@ -98,9 +98,9 @@ const RecruiterView = () => {
             setSelectedIndices([]); // Clear selection
 
             if (status === 'New') {
-                fetchVendors(); // Refresh list only if added
-                // Optional: Switch tab if bulk import
-                // setActiveTab('pipeline');
+                alert(`Successfully added ${indices.length} vendors to the pipeline.`);
+                fetchVendors();
+                setActiveTab('pipeline');
             }
         } catch (error) {
             console.error(error);
