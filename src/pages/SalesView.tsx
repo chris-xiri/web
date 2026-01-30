@@ -23,9 +23,7 @@ const SalesView = () => {
         setSearchResults([]);
         setSelectedIndices([]);
         try {
-            // Using scrapeProspects for generic industry/business search
             const data = await api.scrapeProspects(zipCode, industry);
-            // Expecting RawLead[] directly from new backend logic
             setSearchResults(data.data || []);
         } catch (error) {
             console.error(error);
@@ -52,7 +50,7 @@ const SalesView = () => {
             alert(`Successfully imported ${leadsToImport.length} prospects!`);
             setSearchResults([]);
             setSelectedIndices([]);
-            setActiveTab('pipeline'); // Switch to pipeline view to see them
+            setActiveTab('pipeline');
         } catch (error) {
             console.error(error);
             alert('Import failed.');
@@ -65,7 +63,7 @@ const SalesView = () => {
             <header className="flex justify-between items-center mb-8">
                 <div>
                     <div className="flex items-center gap-2 mb-1">
-                        <span className="px-2.5 py-0.5 bg-rose-100 text-rose-600 text-[10px] font-bold uppercase tracking-wider rounded-md border border-rose-200">
+                        <span className="px-2.5 py-0.5 bg-sky-100 text-xiri-accent text-[10px] font-bold uppercase tracking-wider rounded-md border border-sky-200">
                             Sales
                         </span>
                     </div>
@@ -73,7 +71,7 @@ const SalesView = () => {
                     <p className="text-slate-500">Hunt for new business and manage pipeline.</p>
                 </div>
                 <div className="flex gap-4 items-center">
-                    <div className="px-4 py-2 bg-rose-50 text-rose-600 rounded-xl text-sm font-bold border border-rose-100">
+                    <div className="px-4 py-2 bg-white text-slate-600 rounded-xl text-sm font-bold border border-slate-100 shadow-sm">
                         {user?.email}
                     </div>
                     <LogoutButton />
@@ -87,7 +85,7 @@ const SalesView = () => {
                         key={tab}
                         onClick={() => setActiveTab(tab as any)}
                         className={`px-6 py-2.5 rounded-t-xl text-sm font-bold transition-all ${activeTab === tab
-                            ? 'bg-white text-rose-600 shadow-sm border border-b-0 border-slate-100 translate-y-px'
+                            ? 'bg-white text-xiri-accent shadow-sm border border-b-0 border-slate-100 translate-y-px'
                             : 'text-slate-400 hover:text-slate-600 hover:bg-slate-50'
                             }`}
                     >
@@ -101,7 +99,7 @@ const SalesView = () => {
                 <div className="max-w-5xl mx-auto">
                     <div className="bg-white p-8 rounded-[2rem] shadow-xl border border-slate-100 mb-8">
                         <div className="flex items-center gap-3 mb-6">
-                            <div className="p-3 bg-rose-100 text-rose-600 rounded-2xl">
+                            <div className="p-3 bg-sky-50 text-xiri-accent rounded-2xl">
                                 <Search size={24} />
                             </div>
                             <div>
@@ -114,21 +112,21 @@ const SalesView = () => {
                             <input
                                 type="text"
                                 placeholder="Zip Code (e.g. 90210)"
-                                className="flex-1 px-5 py-4 bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-700 outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500 transition-all placeholder:font-medium placeholder:text-slate-400"
+                                className="flex-1 px-5 py-4 bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-700 outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-xiri-accent transition-all placeholder:font-medium placeholder:text-slate-400"
                                 value={zipCode}
                                 onChange={(e) => setZipCode(e.target.value)}
                             />
                             <input
                                 type="text"
                                 placeholder="Target Industry (e.g. Property Management)"
-                                className="flex-[2] px-5 py-4 bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-700 outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500 transition-all placeholder:font-medium placeholder:text-slate-400"
+                                className="flex-[2] px-5 py-4 bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-700 outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-xiri-accent transition-all placeholder:font-medium placeholder:text-slate-400"
                                 value={industry}
                                 onChange={(e) => setIndustry(e.target.value)}
                             />
                             <button
                                 onClick={handleScrape}
                                 disabled={loading || !zipCode || !industry}
-                                className="px-8 py-4 bg-rose-600 text-white font-bold rounded-xl hover:bg-rose-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-rose-200"
+                                className="px-8 py-4 bg-xiri-primary text-white font-bold rounded-xl hover:bg-slate-800 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-slate-200"
                             >
                                 {loading ? <Loader2 className="animate-spin" /> : 'Hunt Prospects'}
                             </button>
@@ -144,7 +142,7 @@ const SalesView = () => {
                                     <button
                                         onClick={handleImport}
                                         disabled={importing}
-                                        className="flex items-center gap-2 px-6 py-2 bg-emerald-500 text-white rounded-xl font-bold hover:bg-emerald-600 transition-all shadow-lg shadow-emerald-200 text-sm"
+                                        className="flex items-center gap-2 px-6 py-2 bg-xiri-success text-white rounded-xl font-bold hover:opacity-90 transition-all shadow-lg shadow-green-200 text-sm"
                                     >
                                         {importing ? <Loader2 className="animate-spin" size={16} /> : <UserPlus size={18} />}
                                         Add {selectedIndices.length} to Pipeline
@@ -164,20 +162,20 @@ const SalesView = () => {
                                     </thead>
                                     <tbody className="divide-y divide-slate-100 text-sm">
                                         {searchResults.map((v, i) => (
-                                            <tr key={i} className={`hover:bg-slate-50/80 transition-colors ${selectedIndices.includes(i) ? 'bg-rose-50/30' : ''}`}>
+                                            <tr key={i} className={`hover:bg-slate-50/80 transition-colors ${selectedIndices.includes(i) ? 'bg-sky-50/30' : ''}`}>
                                                 <td className="px-8 py-5 text-center">
                                                     <input
                                                         type="checkbox"
                                                         checked={selectedIndices.includes(i)}
                                                         onChange={() => toggleSelection(i)}
-                                                        className="w-5 h-5 rounded border-slate-300 text-rose-600 focus:ring-rose-500 cursor-pointer"
+                                                        className="w-5 h-5 rounded border-slate-300 text-xiri-accent focus:ring-sky-500 cursor-pointer"
                                                     />
                                                 </td>
                                                 <td className="px-8 py-5">
                                                     <div className="font-bold text-slate-700">{v.companyName}</div>
                                                     <div className="text-xs text-slate-400 mt-1">{v.address}</div>
                                                     {v.website && (
-                                                        <a href={v.website} target="_blank" rel="noopener noreferrer" className="text-xs text-rose-500 hover:underline mt-1 block truncate max-w-[200px]">
+                                                        <a href={v.website} target="_blank" rel="noopener noreferrer" className="text-xs text-xiri-accent hover:underline mt-1 block truncate max-w-[200px]">
                                                             {v.website}
                                                         </a>
                                                     )}

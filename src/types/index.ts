@@ -67,7 +67,7 @@ export interface Account {
         fullNumber?: string;
     };
     sqFt?: number;
-    status: 'Active' | 'Inactive' | 'Lead' | 'Churned';
+    status: 'New' | 'Contacted' | 'Vetting' | 'Active' | 'Inactive' | 'Lead' | 'Churned' | 'Rejected';
     rating: number;
 
     // Vendor specific

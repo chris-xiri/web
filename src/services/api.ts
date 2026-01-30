@@ -37,24 +37,33 @@ export const api = {
     },
 
     scrapeProspects: async (zipCode: string, query: string) => {
-        // Reusing the same endpoint but logic might differ if backend separates them
-        // For now, assuming scrapeVendorsHandler can handle generic queries if we modify it or add a new one
-        // Note: The plan said "Create scrapeProspects (reuse logic if possible)".
-        // Backend implementation reused runGoogleMapsScraper. 
-        // Let's assume we use the same endpoint but maybe different semantic intent, 
-        // OR we should have exposed a separate endpoint.
-        // Looking at backend routes: router.post('/scrape', scrapeVendorsHandler);
-        // scrapeVendorsHandler expects { zipCode, trade }.
-        // We can pass `query` as `trade` for now as a quick hack, or better yet, update backend to be more generic.
-        // BUT, for now, let's just stick to the existing endpoint.
-        return api.scrapeVendors(zipCode, query);
-    },
-
-    importLeads: async (leads: any[], type: 'vendor' | 'prospect', ownerId?: string) => {
-        const response = await fetch(`${API_URL}/vendors/import`, {
+        const response = await fetch(`${API_URL}/crm/prospects/search`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ leads, type, ownerId }),
+            body: JSON.stringify({ zipCode, query }),
+        });
+        return response.json();
+    },
+
+    importLeads: async (leads: any[], type: 'vendor' | 'prospect', ownerId?: string, status?: string) => {
+        // Use specific endpoint for prospects, fallback to generic for vendors if needed (or create separate)
+        const endpoint = type === 'prospect' ? '/crm/prospects/import' : '/vendors/import';
+
+        const body: any = { leads, ownerId, status };
+        if (type === 'vendor') body.type = 'vendor'; // vendor endpoint expects strict type if generic
+
+        const response = await fetch(`${API_URL}${endpoint}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(body),
+        });
+        return response.json();
+    },
+
+    getVendors: async (type: 'vendor' | 'prospect' = 'vendor') => {
+        const response = await fetch(`${API_URL}/vendors?type=${type}`, {
+            method: 'GET',
+            headers: { 'Content-Type': 'application/json' },
         });
         return response.json();
     }
