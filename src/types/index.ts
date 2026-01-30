@@ -88,6 +88,12 @@ export interface Account {
         status: 'active' | 'paused' | 'completed';
     };
 
+    complianceDocs?: {
+        name: string;
+        url: string;
+        uploadedAt: Date | string;
+    }[];
+
     // Metadata
     ownerId?: string;
     aiContextSummary?: string;

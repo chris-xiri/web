@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { X, Save, Loader2 } from 'lucide-react';
+import { X, Save, Loader2, ShieldCheck, Building2, FileText, ExternalLink, Calendar } from 'lucide-react';
 import type { Account } from '../types';
 
 interface VendorModalProps {
@@ -24,6 +24,12 @@ const VendorModal = ({ isOpen, onClose, onSave, initialData }: VendorModalProps)
             city: '',
             state: '',
             zipCode: ''
+        },
+        compliance: {
+            insuranceVerified: false,
+            isLLC: false,
+            w9Signed: false,
+            insuranceExpiry: ''
         }
     });
 
@@ -32,7 +38,15 @@ const VendorModal = ({ isOpen, onClose, onSave, initialData }: VendorModalProps)
 
     useEffect(() => {
         if (initialData) {
-            setFormData(initialData);
+            setFormData({
+                ...initialData,
+                compliance: initialData.compliance || {
+                    insuranceVerified: false,
+                    isLLC: false,
+                    w9Signed: false,
+                    insuranceExpiry: ''
+                }
+            });
             setPrimaryTrade(initialData.trades?.[0] || '');
         } else {
             // Reset for new entry
@@ -50,6 +64,12 @@ const VendorModal = ({ isOpen, onClose, onSave, initialData }: VendorModalProps)
                     city: '',
                     state: '',
                     zipCode: ''
+                },
+                compliance: {
+                    insuranceVerified: false,
+                    isLLC: false,
+                    w9Signed: false,
+                    insuranceExpiry: ''
                 }
             });
             setPrimaryTrade('');
@@ -65,9 +85,11 @@ const VendorModal = ({ isOpen, onClose, onSave, initialData }: VendorModalProps)
             const dataToSave = {
                 ...formData,
                 trades: primaryTrade ? [primaryTrade] : [],
-                // Ensure address object structure is preserved or defaulted
                 address: {
                     ...formData.address
+                },
+                compliance: {
+                    ...formData.compliance
                 }
             };
             await onSave(dataToSave);
@@ -86,7 +108,17 @@ const VendorModal = ({ isOpen, onClose, onSave, initialData }: VendorModalProps)
         setFormData(prev => ({
             ...prev,
             address: {
-                ...prev.address,
+                ...prev.address as any,
+                [field]: value
+            }
+        }));
+    };
+
+    const updateCompliance = (field: string, value: any) => {
+        setFormData(prev => ({
+            ...prev,
+            compliance: {
+                ...prev.compliance,
                 [field]: value
             }
         }));
@@ -124,10 +156,11 @@ const VendorModal = ({ isOpen, onClose, onSave, initialData }: VendorModalProps)
                                 onChange={e => updateField('status', e.target.value)}
                             >
                                 <option value="New">New</option>
-                                <option value="Contacted">Contacted</option>
-                                <option value="Vetting">Vetting</option>
+                                <option value="Outreach">In Sequence</option>
+                                <option value="Onboarding">Onboarding</option>
                                 <option value="Active">Active</option>
                                 <option value="Rejected">Rejected</option>
+                                <option value="Unresponsive">Unresponsive</option>
                             </select>
                         </div>
                     </div>
@@ -155,16 +188,6 @@ const VendorModal = ({ isOpen, onClose, onSave, initialData }: VendorModalProps)
                                 />
                             </div>
                         </div>
-                        <div className="space-y-1">
-                            <label className="text-sm font-medium text-slate-600">Website</label>
-                            <input
-                                type="url"
-                                placeholder="https://"
-                                className="w-full px-4 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 outline-none transition-all"
-                                value={formData.website || ''}
-                                onChange={e => updateField('website', e.target.value)}
-                            />
-                        </div>
                     </div>
 
                     {/* Address & Trade */}
@@ -190,32 +213,89 @@ const VendorModal = ({ isOpen, onClose, onSave, initialData }: VendorModalProps)
                                 />
                             </div>
                         </div>
+                    </div>
 
-                        <div className="space-y-1">
-                            <label className="text-sm font-medium text-slate-600">Street Address</label>
-                            <input
-                                className="w-full px-4 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 outline-none transition-all"
-                                value={formData.address?.street || ''}
-                                onChange={e => updateAddress('street', e.target.value)}
-                            />
-                        </div>
+                    {/* Compliance & Legal */}
+                    <div className="space-y-4 bg-slate-50 p-6 rounded-2xl border border-slate-100">
+                        <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wider flex items-center gap-2">
+                            <ShieldCheck size={18} className="text-indigo-600" />
+                            Compliance & Legal
+                        </h3>
 
-                        <div className="grid grid-cols-2 gap-4">
-                            <div className="space-y-1">
-                                <label className="text-sm font-medium text-slate-600">City</label>
-                                <input
-                                    className="w-full px-4 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 outline-none transition-all"
-                                    value={formData.address?.city || ''}
-                                    onChange={e => updateAddress('city', e.target.value)}
-                                />
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div className="space-y-4">
+                                <label className="flex items-center gap-3 p-3 bg-white rounded-xl border border-slate-200 cursor-pointer hover:border-indigo-300 transition-all">
+                                    <input
+                                        type="checkbox"
+                                        className="w-5 h-5 rounded-md border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                                        checked={formData.compliance?.insuranceVerified || false}
+                                        onChange={e => updateCompliance('insuranceVerified', e.target.checked)}
+                                    />
+                                    <span className="text-sm font-medium text-slate-700">Insurance Verified</span>
+                                </label>
+
+                                <label className="flex items-center gap-3 p-3 bg-white rounded-xl border border-slate-200 cursor-pointer hover:border-indigo-300 transition-all">
+                                    <input
+                                        type="checkbox"
+                                        className="w-5 h-5 rounded-md border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                                        checked={formData.compliance?.isLLC || false}
+                                        onChange={e => updateCompliance('isLLC', e.target.checked)}
+                                    />
+                                    <span className="text-sm font-medium text-slate-700">LLC Registered</span>
+                                </label>
+
+                                <label className="flex items-center gap-3 p-3 bg-white rounded-xl border border-slate-200 cursor-pointer hover:border-indigo-300 transition-all">
+                                    <input
+                                        type="checkbox"
+                                        className="w-5 h-5 rounded-md border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                                        checked={formData.compliance?.w9Signed || false}
+                                        onChange={e => updateCompliance('w9Signed', e.target.checked)}
+                                    />
+                                    <span className="text-sm font-medium text-slate-700">W-9 Signed / Received</span>
+                                </label>
                             </div>
-                            <div className="space-y-1">
-                                <label className="text-sm font-medium text-slate-600">State</label>
-                                <input
-                                    className="w-full px-4 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 outline-none transition-all"
-                                    value={formData.address?.state || ''}
-                                    onChange={e => updateAddress('state', e.target.value)}
-                                />
+
+                            <div className="space-y-4">
+                                <div className="space-y-1">
+                                    <label className="text-sm font-bold text-slate-700 flex items-center gap-2">
+                                        <Calendar size={14} /> Insurance Expiration
+                                    </label>
+                                    <input
+                                        type="date"
+                                        className="w-full px-4 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 outline-none transition-all"
+                                        value={formData.compliance?.insuranceExpiry ? (typeof formData.compliance.insuranceExpiry === 'string' ? formData.compliance.insuranceExpiry.split('T')[0] : formData.compliance.insuranceExpiry.toISOString().split('T')[0]) : ''}
+                                        onChange={e => updateCompliance('insuranceExpiry', e.target.value)}
+                                    />
+                                </div>
+
+                                <div className="space-y-2">
+                                    <label className="text-sm font-bold text-slate-700 flex items-center gap-2">
+                                        <FileText size={14} /> Documents
+                                    </label>
+                                    <div className="space-y-2">
+                                        {formData.complianceDocs && formData.complianceDocs.length > 0 ? (
+                                            formData.complianceDocs.map((doc, idx) => (
+                                                <a
+                                                    key={idx}
+                                                    href={doc.url}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="flex items-center justify-between p-2 bg-white rounded-lg border border-slate-200 text-xs text-indigo-600 font-medium hover:bg-slate-50 transition-all"
+                                                >
+                                                    <span className="flex items-center gap-2">
+                                                        <FileText size={12} className="text-slate-400" />
+                                                        {doc.name}
+                                                    </span>
+                                                    <ExternalLink size={12} />
+                                                </a>
+                                            ))
+                                        ) : (
+                                            <div className="text-[10px] text-slate-400 italic p-3 border border-dashed border-slate-200 rounded-xl text-center">
+                                                No documents uploaded yet.
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
