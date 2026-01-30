@@ -113,6 +113,34 @@ const AccountDetailView = () => {
                             )}
                         </div>
                     </div>
+
+                    {/* AI & Vetting Card */}
+                    {(account?.vettingNotes || account?.aiContextSummary) && (
+                        <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100">
+                            <h3 className="font-bold text-slate-700 mb-4 flex items-center gap-2">
+                                <ShieldCheck size={18} className="text-amber-500" />
+                                AI Vetting & Intelligence
+                            </h3>
+
+                            {account?.vettingNotes && (
+                                <div className="bg-amber-50 p-4 rounded-xl border border-amber-200 mb-4">
+                                    <h4 className="text-[10px] font-bold text-amber-700 uppercase mb-1">Automated Vetting Report</h4>
+                                    <p className="text-xs text-amber-900 italic leading-relaxed">
+                                        {account.vettingNotes}
+                                    </p>
+                                </div>
+                            )}
+
+                            {account?.aiContextSummary && (
+                                <div className="bg-indigo-50 p-4 rounded-xl border border-indigo-100">
+                                    <h4 className="text-[10px] font-bold text-indigo-700 uppercase mb-1">Deep Intelligence Summary</h4>
+                                    <p className="text-xs text-indigo-900 leading-relaxed">
+                                        {account.aiContextSummary}
+                                    </p>
+                                </div>
+                            )}
+                        </div>
+                    )}
                 </div>
 
                 {/* Center Column: Related Contacts & Deals (6 cols) */}

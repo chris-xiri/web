@@ -298,6 +298,38 @@ const VendorModal = ({ isOpen, onClose, onSave, initialData }: VendorModalProps)
                                 </div>
                             </div>
                         </div>
+
+                        {/* AI Intel & Vetting Reports */}
+                        {(formData.vettingNotes || formData.aiContextSummary) && (
+                            <div className="mt-8 space-y-4">
+                                <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100 pb-2 flex items-center gap-2">
+                                    <ShieldAlert size={14} className="text-slate-400" />
+                                    AI Intelligence & Vetting
+                                </h3>
+
+                                {formData.vettingNotes && (
+                                    <div className="bg-amber-50 p-4 rounded-xl border border-amber-200">
+                                        <div className="flex items-center gap-2 text-amber-700 font-bold text-xs uppercase mb-2">
+                                            <ShieldAlert size={16} /> Automated Vetting Report
+                                        </div>
+                                        <p className="text-sm text-amber-900 leading-relaxed italic">
+                                            {formData.vettingNotes}
+                                        </p>
+                                    </div>
+                                )}
+
+                                {formData.aiContextSummary && (
+                                    <div className="bg-indigo-50 p-4 rounded-xl border border-indigo-100">
+                                        <div className="flex items-center gap-2 text-indigo-700 font-bold text-xs uppercase mb-2">
+                                            <FileText size={16} /> Deep Analysis Summary
+                                        </div>
+                                        <p className="text-sm text-indigo-900 leading-relaxed">
+                                            {formData.aiContextSummary}
+                                        </p>
+                                    </div>
+                                )}
+                            </div>
+                        )}
                     </div>
 
                     <div className="flex justify-end gap-3 pt-4 border-t border-slate-100">
