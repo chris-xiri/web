@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { api } from '../services/api';
 import { useAuth } from '../context/AuthContext';
-import { Search, Building2, UserPlus, CheckCircle2, X, Loader2, LayoutDashboard, List, Kanban, Phone, FileCheck, ShieldCheck, Mail, MapPin, Star, MoreVertical, Plus, Edit } from 'lucide-react';
+import { Search, Building2, UserPlus, CheckCircle2, X, Loader2, LayoutDashboard, List, Kanban, Phone, FileCheck, ShieldCheck, Mail, MapPin, Star, MoreVertical, Plus, Edit, Clock } from 'lucide-react';
 import LogoutButton from '../components/LogoutButton';
 import { useNavigate } from 'react-router-dom';
 import type { Account, Vendor } from '../types';
