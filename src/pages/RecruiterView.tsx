@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import { api } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { Search, Building2, UserPlus, CheckCircle2, X, Loader2, LayoutDashboard, List, Kanban, Phone, FileCheck, ShieldCheck, Mail, MapPin, Star, MoreVertical, Plus, Edit, Clock, AlertCircle, FileText, Award, ShieldAlert, Map } from 'lucide-react';
 import LogoutButton from '../components/LogoutButton';
-import { useNavigate } from 'react-router-dom';
 import type { Account, Vendor, Activity } from '../types';
 import VendorModal from '../components/VendorModal';
 
@@ -11,7 +11,12 @@ import VendorModal from '../components/VendorModal';
 const RecruiterView = () => {
     const { user } = useAuth();
     const navigate = useNavigate();
-    const [activeTab, setActiveTab] = useState<'dashboard' | 'accounts' | 'pipeline' | 'search'>('dashboard');
+    const [searchParams, setSearchParams] = useSearchParams();
+    const activeTab = searchParams.get('tab') || 'dashboard';
+
+    const setActiveTab = (tab: string) => {
+        setSearchParams({ tab });
+    };
 
     // CRM Data State
     const [vendors, setVendors] = useState<Account[]>([]);

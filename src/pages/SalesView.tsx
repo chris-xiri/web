@@ -1,16 +1,21 @@
 import { useState, useEffect } from 'react';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import { api } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { Search, Building2, UserPlus, TrendingUp, Loader2, CheckCircle2, ShieldCheck, Phone, Mail, MapPin, Edit, Plus, Star, X } from 'lucide-react';
 import LogoutButton from '../components/LogoutButton';
 import type { RawLead, Account } from '../types';
 import ProspectModal from '../components/ProspectModal';
-import { useNavigate } from 'react-router-dom';
 
 const SalesView = () => {
     const { user } = useAuth();
     const navigate = useNavigate();
-    const [activeTab, setActiveTab] = useState<'dashboard' | 'accounts' | 'pipeline' | 'search'>('dashboard');
+    const [searchParams, setSearchParams] = useSearchParams();
+    const activeTab = searchParams.get('tab') || 'dashboard';
+
+    const setActiveTab = (tab: string) => {
+        setSearchParams({ tab });
+    };
 
     // CRM Data State
     const [prospects, setProspects] = useState<Account[]>([]);
