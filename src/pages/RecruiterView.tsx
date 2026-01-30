@@ -226,6 +226,7 @@ const RecruiterView = () => {
             { id: 'New', label: 'New Leads', status: 'New', color: 'bg-blue-500' },
             { id: 'Outreach', label: 'In Sequence', status: 'Outreach', color: 'bg-indigo-500' },
             { id: 'Onboarding', label: 'Replied / Onboarding', status: 'Onboarding', color: 'bg-emerald-500' },
+            { id: 'Vetting', label: 'Vetting (AI Scanned)', status: 'Vetting', color: 'bg-amber-500' },
             { id: 'Unresponsive', label: 'Unresponsive (Dead)', status: 'Unresponsive', color: 'bg-slate-400' },
             { id: 'Active', label: 'Active Network', status: 'Active', color: 'bg-blue-600' }
         ];
@@ -385,6 +386,34 @@ const RecruiterView = () => {
                                                     className="flex-1 bg-emerald-500 text-white text-xs font-black py-2.5 rounded-xl hover:bg-emerald-600 transition-all shadow-md shadow-emerald-100 flex items-center justify-center gap-2 border border-emerald-400"
                                                 >
                                                     <CheckCircle2 size={14} /> MARK REPLIED
+                                                </button>
+                                            )}
+                                            {col.status === 'Onboarding' && (
+                                                <button
+                                                    onClick={async (e) => {
+                                                        e.stopPropagation();
+                                                        if (confirm(`Move ${vendor.name} to Vetting stage?`)) {
+                                                            await api.updateVendor(vendor.id!, { status: 'Vetting' });
+                                                            fetchVendors();
+                                                        }
+                                                    }}
+                                                    className="flex-1 bg-amber-500 text-white text-xs font-black py-2.5 rounded-xl hover:bg-amber-600 transition-all shadow-md shadow-amber-100 flex items-center justify-center gap-2 border border-amber-400"
+                                                >
+                                                    <ShieldCheck size={14} /> START VETTING
+                                                </button>
+                                            )}
+                                            {col.status === 'Vetting' && (
+                                                <button
+                                                    onClick={async (e) => {
+                                                        e.stopPropagation();
+                                                        if (confirm(`Approve and Activate ${vendor.name}?`)) {
+                                                            await api.updateVendor(vendor.id!, { status: 'Active' });
+                                                            fetchVendors();
+                                                        }
+                                                    }}
+                                                    className="flex-1 bg-blue-600 text-white text-xs font-black py-2.5 rounded-xl hover:bg-blue-700 transition-all shadow-md shadow-blue-100 flex items-center justify-center gap-2 border border-blue-500"
+                                                >
+                                                    <CheckCircle2 size={14} /> ACTIVATE VENDOR
                                                 </button>
                                             )}
                                         </div>
