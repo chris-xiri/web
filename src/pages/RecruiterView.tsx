@@ -6,7 +6,7 @@ import LogoutButton from '../components/LogoutButton';
 import { useNavigate } from 'react-router-dom';
 import type { Account, Vendor } from '../types';
 
-import { useNavigate } from 'react-router-dom';
+
 
 const RecruiterView = () => {
     const { user } = useAuth();

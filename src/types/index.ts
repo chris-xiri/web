@@ -73,8 +73,10 @@ export interface Account {
     // Vendor specific
     trades?: string[];
     compliance?: {
-        coiExpiry: Date | string;
-        w9OnFile: boolean;
+        coiExpiry?: Date | string;
+        w9OnFile?: boolean;
+        insuranceVerified?: boolean;
+        isLLC?: boolean;
     };
 
     // Metadata
