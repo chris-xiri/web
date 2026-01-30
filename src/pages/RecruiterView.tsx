@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
 import { api } from '../services/api';
 import { useAuth } from '../context/AuthContext';
-import { Search, Building2, UserPlus, CheckCircle2, X, Loader2, LayoutDashboard, List, Kanban, Phone, FileCheck, ShieldCheck, Mail, MapPin, Star, MoreVertical, Plus, Edit, Clock } from 'lucide-react';
+import { Search, Building2, UserPlus, CheckCircle2, X, Loader2, LayoutDashboard, List, Kanban, Phone, FileCheck, ShieldCheck, Mail, MapPin, Star, MoreVertical, Plus, Edit, Clock, AlertCircle } from 'lucide-react';
 import LogoutButton from '../components/LogoutButton';
 import { useNavigate } from 'react-router-dom';
-import type { Account, Vendor } from '../types';
+import type { Account, Vendor, Activity } from '../types';
 import VendorModal from '../components/VendorModal';
 
 
@@ -186,8 +186,8 @@ const RecruiterView = () => {
                                 <div key={activity.id || idx} className="relative pl-10">
                                     <div className="absolute left-0 top-1.5 w-[22px] h-[22px] rounded-full bg-white border-2 border-slate-100 flex items-center justify-center z-10">
                                         <div className={`w-2 h-2 rounded-full ${activity.type === 'email' ? 'bg-blue-500' :
-                                                activity.type === 'call' ? 'bg-emerald-500' :
-                                                    activity.type === 'meeting' ? 'bg-purple-500' : 'bg-slate-400'
+                                            activity.type === 'call' ? 'bg-emerald-500' :
+                                                activity.type === 'meeting' ? 'bg-purple-500' : 'bg-slate-400'
                                             }`} />
                                     </div>
                                     <div className="bg-slate-50/50 p-4 rounded-xl border border-slate-100/50 group hover:border-indigo-100 hover:bg-white transition-all">
@@ -340,12 +340,23 @@ const RecruiterView = () => {
                                         {/* Action Buttons */}
                                         <div className="mt-4 flex gap-2">
                                             {col.status === 'New' && (
-                                                <button
-                                                    onClick={(e) => { e.stopPropagation(); handleLaunchSequence(vendor); }}
-                                                    className="flex-1 bg-indigo-600 text-white text-xs font-black py-2.5 rounded-xl hover:bg-indigo-700 transition-all shadow-md shadow-indigo-100 flex items-center justify-center gap-2 border border-indigo-500"
-                                                >
-                                                    <Mail size={14} /> LAUNCH SEQUENCE
-                                                </button>
+                                                <div className="flex-1">
+                                                    {!vendor.email && (
+                                                        <div className="text-[10px] text-red-500 font-bold mb-1.5 flex items-center gap-1">
+                                                            <AlertCircle size={10} /> Email required to launch
+                                                        </div>
+                                                    )}
+                                                    <button
+                                                        onClick={(e) => { e.stopPropagation(); handleLaunchSequence(vendor); }}
+                                                        disabled={!vendor.email}
+                                                        className={`w-full text-xs font-black py-2.5 rounded-xl transition-all flex items-center justify-center gap-2 border ${vendor.email
+                                                            ? "bg-indigo-600 text-white hover:bg-indigo-700 shadow-md shadow-indigo-100 border-indigo-500"
+                                                            : "bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed"
+                                                            }`}
+                                                    >
+                                                        <Mail size={14} /> LAUNCH SEQUENCE
+                                                    </button>
+                                                </div>
                                             )}
                                             {col.status === 'Outreach' && (
                                                 <button
