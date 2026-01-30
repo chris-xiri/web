@@ -39,7 +39,7 @@ const RecruiterSearchTab = ({
 
     const { ref: materialRef } = usePlacesWidget({
         apiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY,
-        onPlaceSelected: (place) => {
+        onPlaceSelected: (place: any) => {
             const addressComponents = place.address_components;
             const zipCode = addressComponents?.find((c: any) => c.types.includes('postal_code'))?.long_name;
 
