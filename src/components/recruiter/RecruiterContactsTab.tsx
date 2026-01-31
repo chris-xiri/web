@@ -305,7 +305,9 @@ const RecruiterContactsTab = ({ contacts, accounts, onAddContact, onDeleteContac
                                     const val = getFieldValue(contact, colId);
                                     return (
                                         <EditableCell key={colId} rowId={contact.id} field={colId === 'accountName' ? 'accountId' : colId} value={colId === 'accountName' ? contact.accountId : val}>
-                                            {colId === 'isPrimary' ? (
+                                            {colId === 'accountName' ? (
+                                                <span className="font-bold text-slate-800 underline decoration-slate-200 decoration-dotted underline-offset-4 cursor-help">{val}</span>
+                                            ) : colId === 'isPrimary' ? (
                                                 <span className={`px-1.5 py-0.5 rounded text-[9px] font-black uppercase ${val ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' : 'bg-slate-50 text-slate-400'}`}>
                                                     {val ? 'Primary' : 'Secondary'}
                                                 </span>

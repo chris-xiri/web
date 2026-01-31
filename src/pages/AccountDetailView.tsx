@@ -13,6 +13,7 @@ const AccountDetailView = () => {
     const { id } = useParams();
     const navigate = useNavigate();
     const [account, setAccount] = useState<Account | null>(null);
+    const [contacts, setContacts] = useState<Contact[]>([]);
     const [loading, setLoading] = useState(true);
     const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -20,9 +21,20 @@ const AccountDetailView = () => {
         if (!id) return;
         setLoading(true);
         try {
-            const res = await api.getVendors('vendor');
-            const found = res.data?.find((a: Account) => a.id === id);
+            const [vendorsRes, prospectsRes, contactsRes] = await Promise.all([
+                api.getVendors('vendor'),
+                api.getVendors('prospect'),
+                api.getContacts(id)
+            ]);
+
+            const found = vendorsRes.data?.find((a: Account) => a.id === id) ||
+                prospectsRes.data?.find((a: Account) => a.id === id);
+
             if (found) setAccount(found);
+
+            if (contactsRes.data) {
+                setContacts(contactsRes.data);
+            }
         } catch (err) {
             console.error(err);
         }
@@ -169,8 +181,36 @@ const AccountDetailView = () => {
                                 <Plus size={16} />
                             </button>
                         </div>
-                        <div className="text-center py-6 border border-dashed border-slate-100 rounded-lg bg-slate-50/20">
-                            <div className="text-slate-300 font-bold text-[10px] uppercase tracking-wider">No contacts added</div>
+                        <div className="space-y-3">
+                            {contacts.length > 0 ? (
+                                contacts.map((contact) => (
+                                    <div key={contact.id} className="p-3 bg-slate-50/50 rounded-lg border border-slate-100 hover:border-indigo-100 transition-colors group">
+                                        <div className="flex justify-between items-start mb-1">
+                                            <div className="font-bold text-[12px] text-slate-900">{contact.firstName} {contact.lastName}</div>
+                                            {contact.isPrimary && (
+                                                <span className="bg-emerald-50 text-emerald-600 text-[8px] font-black uppercase px-1 py-0.5 rounded border border-emerald-100">Primary</span>
+                                            )}
+                                        </div>
+                                        {contact.title && <div className="text-[10px] text-slate-500 font-medium mb-2">{contact.title}</div>}
+                                        <div className="flex flex-col gap-1">
+                                            {contact.email && (
+                                                <a href={`mailto:${contact.email}`} className="flex items-center gap-2 text-[10px] font-bold text-slate-400 hover:text-indigo-600">
+                                                    <Mail size={10} /> {contact.email}
+                                                </a>
+                                            )}
+                                            {contact.phone && (
+                                                <div className="flex items-center gap-2 text-[10px] font-bold text-slate-400">
+                                                    <Phone size={10} /> {contact.phone}
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                ))
+                            ) : (
+                                <div className="text-center py-6 border border-dashed border-slate-100 rounded-lg bg-slate-50/20">
+                                    <div className="text-slate-300 font-bold text-[10px] uppercase tracking-wider">No contacts added</div>
+                                </div>
+                            )}
                         </div>
                     </div>
 

@@ -103,6 +103,62 @@ const RecruiterAccountsTab = ({ vendors, onAddVendor, onEditVendor, onDeleteVend
     const columnsRef = useRef<HTMLDivElement>(null);
     const viewsRef = useRef<HTMLDivElement>(null);
 
+    // -- SELECTION STATE --
+    const [selectedIds, setSelectedIds] = useState<string[]>([]);
+    const [isBulkStatusOpen, setIsBulkStatusOpen] = useState(false);
+
+    // -- BULK ACTIONS --
+    const handleSelectAll = (checked: boolean, visibleIds: string[]) => {
+        if (checked) {
+            setSelectedIds(visibleIds);
+        } else {
+            setSelectedIds([]);
+        }
+    };
+
+    const toggleSelection = (id: string) => {
+        setSelectedIds(prev =>
+            prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
+        );
+    };
+
+    const handleBulkDelete = async () => {
+        if (selectedIds.length === 0) return;
+        if (!window.confirm(`Are you sure you want to delete ${selectedIds.length} vendors? This action cannot be undone.`)) {
+            return;
+        }
+
+        try {
+            await Promise.all(selectedIds.map(id => api.deleteVendor(id)));
+            setSelectedIds([]);
+            // Refresh parent state - though preferably parent handles the list
+            // For now, let's assume the component re-renders when parent vendors change
+            // we should ideally have a refresh callback or the parent should be notified.
+            // RecruiterView has fetchVendors, we can just call it if we pass it, 
+            // but RecruiterView.tsx handles delete optimistically.
+            // Let's assume the user wants us to refresh the list or just update local state if possible.
+            // Actually, the parent RecruiterView.tsx manages 'vendors' state.
+            // We should ideally call a bulk delete prop if available, but let's stick to calling api directly then maybe re-fetch.
+            window.location.reload(); // Simple way to sync if no better way is provided
+        } catch (error) {
+            console.error("Bulk delete failed", error);
+            alert("Some deletions failed.");
+        }
+    };
+
+    const handleBulkStatusChange = async (newStatus: string) => {
+        if (selectedIds.length === 0) return;
+        try {
+            await Promise.all(selectedIds.map(id => api.updateVendor(id, { status: newStatus as any })));
+            setSelectedIds([]);
+            setIsBulkStatusOpen(false);
+            window.location.reload(); // Refresh to show updates
+        } catch (error) {
+            console.error("Bulk status update failed", error);
+            alert("Some status updates failed.");
+        }
+    };
+
     // -- LOAD SAVED VIEWS --
     useEffect(() => {
         const stored = localStorage.getItem(STORAGE_KEY);
@@ -333,8 +389,8 @@ const RecruiterAccountsTab = ({ vendors, onAddVendor, onEditVendor, onDeleteVend
                             onBlur={() => handleInlineSave(rowId, field, tempValue)}
                             onKeyDown={onKeyDown}
                         >
-                            {['New', 'Lead', 'Contacted', 'Vetting', 'Active', 'Inactive', 'Outreach', 'Onboarding', 'Unresponsive', 'Rejected'].map(s => (
-                                <option key={s} value={s}>{s}</option>
+                            {['New', 'Outreach', 'Onboarding', 'Vetting', 'Active', 'Unresponsive', 'Rejected'].map(s => (
+                                <option key={s} value={s}>{s === 'Outreach' ? 'In Sequence' : s === 'Onboarding' ? 'Replied' : s}</option>
                             ))}
                         </select>
                     ) : (
@@ -535,9 +591,18 @@ const RecruiterAccountsTab = ({ vendors, onAddVendor, onEditVendor, onDeleteVend
                 <table className="w-full text-left border-collapse min-w-[1200px]">
                     <thead className="sticky top-0 z-40 bg-slate-50 shadow-[0_1px_0_0_rgba(226,232,240,1)]">
                         <tr className="text-[11px] font-semibold text-slate-500 uppercase tracking-tight">
+                            {/* MASTER CHECKBOX */}
+                            <th className="px-4 py-3 border-b border-slate-200 sticky left-0 z-50 bg-slate-50 w-12 text-center">
+                                <input
+                                    type="checkbox"
+                                    className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer"
+                                    checked={paginatedData.length > 0 && selectedIds.length === paginatedData.length}
+                                    onChange={(e) => handleSelectAll(e.target.checked, paginatedData.map(v => v.id!))}
+                                />
+                            </th>
                             {/* STICKY COLUMN HEADER */}
                             <th
-                                className="px-4 py-3 border-b border-slate-200 sticky left-0 z-50 bg-slate-50 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.05)] cursor-pointer hover:text-indigo-600 transition-colors"
+                                className="px-4 py-3 border-b border-slate-200 sticky left-12 z-50 bg-slate-50 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.05)] cursor-pointer hover:text-indigo-600 transition-colors"
                                 onClick={() => handleSort('name')}
                             >
                                 <div className="flex items-center gap-2">
@@ -569,14 +634,24 @@ const RecruiterAccountsTab = ({ vendors, onAddVendor, onEditVendor, onDeleteVend
                         {paginatedData.map(vendor => (
                             <tr
                                 key={vendor.id}
-                                className="hover:bg-indigo-50/30 transition-colors group border-b border-slate-100"
+                                className={`hover:bg-indigo-50/30 transition-colors group border-b border-slate-100 ${selectedIds.includes(vendor.id!) ? 'bg-indigo-50/50' : ''}`}
                             >
+                                {/* ROW CHECKBOX */}
+                                <td className="px-4 py-3 sticky left-0 z-30 bg-white group-hover:bg-indigo-50/30 w-12 text-center">
+                                    <input
+                                        type="checkbox"
+                                        className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer"
+                                        checked={selectedIds.includes(vendor.id!)}
+                                        onChange={(e) => { e.stopPropagation(); toggleSelection(vendor.id!); }}
+                                        onClick={(e) => e.stopPropagation()}
+                                    />
+                                </td>
                                 {/* STICKY NAME CELL */}
                                 <EditableCell
                                     rowId={vendor.id}
                                     field="name"
                                     value={vendor.name}
-                                    className="font-bold text-slate-900 text-[11px] sticky left-0 z-30 bg-white group-hover:bg-indigo-50/30 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.05)]"
+                                    className="font-bold text-slate-900 text-[11px] sticky left-12 z-30 bg-white group-hover:bg-indigo-50/30 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.05)]"
                                 >
                                     <span
                                         className="hover:underline cursor-pointer"
@@ -720,6 +795,60 @@ const RecruiterAccountsTab = ({ vendors, onAddVendor, onEditVendor, onDeleteVend
                     </button>
                 </div>
             </div>
+            {/* BULK ACTIONS BAR */}
+            {selectedIds.length > 0 && (
+                <div className="fixed bottom-8 left-1/2 -translate-x-1/2 bg-slate-900 text-white px-6 py-3 rounded-full shadow-2xl flex items-center gap-6 z-[100] animate-in slide-in-from-bottom-4 duration-300">
+                    <div className="flex items-center gap-2">
+                        <span className="bg-indigo-500 text-white w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-bold">
+                            {selectedIds.length}
+                        </span>
+                        <span className="text-[12px] font-bold tracking-tight">Selected</span>
+                    </div>
+
+                    <div className="h-6 w-px bg-slate-700 mx-2" />
+
+                    <div className="flex items-center gap-4">
+                        <div className="relative">
+                            <button
+                                onClick={() => setIsBulkStatusOpen(!isBulkStatusOpen)}
+                                className="text-[11px] font-bold hover:text-indigo-400 transition-colors flex items-center gap-1.5 uppercase tracking-widest"
+                            >
+                                Update Status <ChevronDown size={14} />
+                            </button>
+                            {isBulkStatusOpen && (
+                                <div className="absolute bottom-full mb-3 left-0 w-48 bg-white rounded-xl shadow-xl border border-slate-200 p-1 z-[101]">
+                                    {['New', 'Outreach', 'Onboarding', 'Vetting', 'Active', 'Unresponsive', 'Rejected'].map(s => (
+                                        <button
+                                            key={s}
+                                            onClick={() => handleBulkStatusChange(s)}
+                                            className="w-full text-left px-3 py-2 text-[10px] font-black uppercase tracking-widest text-slate-700 hover:bg-slate-50 rounded-lg transition-colors"
+                                        >
+                                            {s === 'Outreach' ? 'In Sequence' : s === 'Onboarding' ? 'Replied' : s}
+                                        </button>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+
+                        <button
+                            onClick={handleBulkDelete}
+                            className="text-[11px] font-bold text-red-400 hover:text-red-300 transition-colors flex items-center gap-1.5 uppercase tracking-widest"
+                        >
+                            <Trash2 size={14} /> Delete
+                        </button>
+                    </div>
+
+                    <div className="h-6 w-px bg-slate-700 mx-2" />
+
+                    <button
+                        onClick={() => setSelectedIds([])}
+                        className="p-1 hover:bg-slate-800 rounded-full transition-colors translate-x-1"
+                        title="Clear Selection"
+                    >
+                        <X size={18} />
+                    </button>
+                </div>
+            )}
         </div>
     );
 };

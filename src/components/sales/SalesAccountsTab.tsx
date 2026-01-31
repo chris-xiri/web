@@ -37,14 +37,16 @@ const SalesAccountsTab = ({ prospects, onAddProspect, onEditProspect, onUpdateSt
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100">
-                        {prospects.filter(p => p.status !== 'Rejected').map((prospect) => (
+                        {prospects.map((prospect) => (
                             <tr
                                 key={prospect.id}
                                 onClick={() => navigate(`/account/${prospect.id}`)}
                                 className={`hover:bg-slate-50 cursor-pointer group transition-all border-l-4 ${prospect.status === 'Active' ? 'border-l-emerald-500' :
                                     prospect.status === 'Vetting' ? 'border-l-amber-500' :
                                         prospect.status === 'New' ? 'border-l-blue-500' :
-                                            'border-l-transparent'
+                                            prospect.status === 'Contacted' ? 'border-l-indigo-500' :
+                                                prospect.status === 'Rejected' ? 'border-l-red-500' :
+                                                    'border-l-transparent'
                                     }`}
                             >
                                 <td className="px-3 py-1.5 align-top">
@@ -58,7 +60,9 @@ const SalesAccountsTab = ({ prospects, onAddProspect, onEditProspect, onUpdateSt
                                         ${prospect.status === 'Active' ? 'bg-emerald-100 text-emerald-700' :
                                             prospect.status === 'New' ? 'bg-blue-100 text-blue-700' :
                                                 prospect.status === 'Vetting' ? 'bg-amber-100 text-amber-700' :
-                                                    'bg-slate-100 text-slate-600'}`}>
+                                                    prospect.status === 'Contacted' ? 'bg-indigo-100 text-indigo-700' :
+                                                        prospect.status === 'Rejected' ? 'bg-red-100 text-red-700' :
+                                                            'bg-slate-100 text-slate-600'}`}>
                                         {prospect.status || 'New'}
                                     </span>
                                 </td>
