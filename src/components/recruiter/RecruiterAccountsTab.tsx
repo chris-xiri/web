@@ -327,7 +327,7 @@ const RecruiterAccountsTab = ({ vendors, onAddVendor, onEditVendor, onDeleteVend
                     {field === 'status' ? (
                         <select
                             autoFocus
-                            className="w-full bg-white border border-indigo-400 rounded px-1 py-0.5 text-[12px] font-bold outline-none ring-2 ring-indigo-500/20"
+                            className="w-full bg-white border border-indigo-400 rounded px-1 py-0.5 text-[13px] font-bold outline-none ring-2 ring-indigo-500/20"
                             value={tempValue}
                             onChange={e => setTempValue(e.target.value)}
                             onBlur={() => handleInlineSave(rowId, field, tempValue)}
@@ -340,7 +340,7 @@ const RecruiterAccountsTab = ({ vendors, onAddVendor, onEditVendor, onDeleteVend
                     ) : (
                         <input
                             autoFocus
-                            className="w-full bg-white border border-indigo-400 rounded px-2 py-0.5 text-[12px] outline-none ring-2 ring-indigo-500/20"
+                            className="w-full bg-white border border-indigo-400 rounded px-2 py-0.5 text-[13px] outline-none ring-2 ring-indigo-500/20"
                             value={tempValue}
                             onChange={e => setTempValue(e.target.value)}
                             onBlur={() => handleInlineSave(rowId, field, tempValue)}
@@ -534,7 +534,7 @@ const RecruiterAccountsTab = ({ vendors, onAddVendor, onEditVendor, onDeleteVend
             <div className="flex-1 overflow-auto relative bg-white">
                 <table className="w-full text-left border-collapse min-w-[1200px]">
                     <thead className="sticky top-0 z-40 bg-slate-50 shadow-[0_1px_0_0_rgba(226,232,240,1)]">
-                        <tr className="text-[11px] font-black text-slate-400 uppercase tracking-widest">
+                        <tr className="text-[12px] font-semibold text-slate-500 uppercase tracking-tight">
                             {/* STICKY COLUMN HEADER */}
                             <th
                                 className="px-4 py-3 border-b border-slate-200 sticky left-0 z-50 bg-slate-50 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.05)] cursor-pointer hover:text-indigo-600 transition-colors"
@@ -614,16 +614,16 @@ const RecruiterAccountsTab = ({ vendors, onAddVendor, onEditVendor, onDeleteVend
                                     }
 
                                     return (
-                                        <td key={colId} className="px-4 py-3 text-[12px] text-slate-600">
+                                        <td key={colId} className="px-4 py-3 text-[13px] text-slate-600">
                                             {colId === 'rating' ? (
-                                                <div className="flex items-center gap-1 font-black text-slate-800">
+                                                <div className="flex items-center gap-1 font-bold text-slate-800">
                                                     {Number(val || 0).toFixed(1)}
                                                     <span className="text-amber-400">★</span>
                                                 </div>
                                             ) : colId === 'insuranceVerified' || colId === 'w9Signed' ? (
                                                 <span className={val ? 'text-emerald-500 font-bold' : 'text-slate-300'}>{val ? 'YES' : 'NO'}</span>
                                             ) : colId === 'createdAt' || colId === 'updatedAt' ? (
-                                                <span className="text-slate-400 tabular-nums">{val ? new Date(val).toLocaleDateString() : '-'}</span>
+                                                <span className="text-slate-400 tabular-nums font-medium">{val ? new Date(val).toLocaleDateString() : '-'}</span>
                                             ) : (
                                                 <span className="truncate max-w-[200px] block">{val || '-'}</span>
                                             )}
