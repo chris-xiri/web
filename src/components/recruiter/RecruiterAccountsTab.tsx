@@ -569,8 +569,7 @@ const RecruiterAccountsTab = ({ vendors, onAddVendor, onEditVendor, onDeleteVend
                         {paginatedData.map(vendor => (
                             <tr
                                 key={vendor.id}
-                                className="hover:bg-indigo-50/30 cursor-pointer transition-colors group"
-                                onClick={() => navigate(`/account/${vendor.id}`)}
+                                className="hover:bg-indigo-50/30 transition-colors group border-b border-slate-100"
                             >
                                 {/* STICKY NAME CELL */}
                                 <EditableCell
