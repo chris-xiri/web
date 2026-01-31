@@ -606,6 +606,24 @@ const RecruiterAccountsTab = ({ vendors, onAddVendor, onEditVendor, onDeleteVend
                                                         }`}>
                                                         {val || 'New'}
                                                     </span>
+                                                ) : colId === 'website' && val ? (
+                                                    <a
+                                                        href={val.startsWith('http') ? val : `https://${val}`}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className="text-indigo-600 hover:underline truncate max-w-[200px] block"
+                                                        onClick={(e) => e.stopPropagation()}
+                                                    >
+                                                        {val}
+                                                    </a>
+                                                ) : colId === 'email' && val ? (
+                                                    <a
+                                                        href={`mailto:${val}`}
+                                                        className="text-indigo-600 hover:underline truncate max-w-[200px] block"
+                                                        onClick={(e) => e.stopPropagation()}
+                                                    >
+                                                        {val}
+                                                    </a>
                                                 ) : (
                                                     <span className="truncate max-w-[200px] block">{val || '-'}</span>
                                                 )}

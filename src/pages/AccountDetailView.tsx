@@ -59,7 +59,14 @@ const AccountDetailView = () => {
                             <div className="flex items-center gap-3 text-slate-400 text-[10px] font-bold uppercase tracking-tight">
                                 <span className="flex items-center gap-1"><MapPin size={10} /> {account?.address?.city || 'No Location'}</span>
                                 <span className="w-1 h-1 bg-slate-200 rounded-full" />
-                                <span className="flex items-center gap-1 font-sans lowercase truncate max-w-[150px]">{account?.website}</span>
+                                <span className="flex items-center gap-1 font-sans lowercase truncate max-w-[150px]">
+                                    <Globe size={10} className="mr-1" />
+                                    {account?.website ? (
+                                        <a href={account.website.startsWith('http') ? account.website : `https://${account.website}`} target="_blank" rel="noopener noreferrer" className="hover:text-indigo-600 hover:underline">
+                                            {account.website}
+                                        </a>
+                                    ) : '-'}
+                                </span>
                                 <span className="w-1 h-1 bg-slate-200 rounded-full" />
                                 <span className="text-indigo-400">{account?.industry}</span>
                             </div>
@@ -90,7 +97,13 @@ const AccountDetailView = () => {
                             </div>
                             <div>
                                 <label className="text-[9px] font-black text-slate-400 uppercase tracking-tighter">Email</label>
-                                <div className="text-xs font-bold text-slate-700 truncate">{account?.email || '-'}</div>
+                                <div className="text-xs font-bold text-slate-700 truncate">
+                                    {account?.email ? (
+                                        <a href={`mailto:${account.email}`} className="text-indigo-600 hover:underline">
+                                            {account.email}
+                                        </a>
+                                    ) : '-'}
+                                </div>
                             </div>
                             {account?.sqFt && (
                                 <div>
