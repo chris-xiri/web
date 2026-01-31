@@ -1,5 +1,6 @@
-import React, { memo, useState, useMemo, useEffect } from 'react';
+import React, { memo, useState, useMemo, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { api } from '../../services/api';
 import {
     Plus,
     Edit,
@@ -25,6 +26,7 @@ interface RecruiterAccountsTabProps {
     onEditVendor: (vendor: Account, e: React.MouseEvent) => void;
     onDeleteVendor: (id: string, e: React.MouseEvent) => void;
     onUpdateStatus: (id: string, status: string) => void;
+    onUpdateVendor: (id: string, updates: Partial<Account>) => void;
     onLaunchSequence: (id: string) => void;
 }
 
@@ -69,17 +71,25 @@ const ALL_AVAILABLE_COLUMNS = [
 ];
 
 const STORAGE_KEY = 'xiri_saved_views_vendors';
+const COLUMNS_STORAGE_KEY = 'xiri_vendor_table_columns';
 
-const RecruiterAccountsTab = ({ vendors, onAddVendor, onEditVendor, onDeleteVendor, onUpdateStatus, onLaunchSequence }: RecruiterAccountsTabProps) => {
+const RecruiterAccountsTab = ({ vendors, onAddVendor, onEditVendor, onDeleteVendor, onUpdateStatus, onUpdateVendor, onLaunchSequence }: RecruiterAccountsTabProps) => {
     const navigate = useNavigate();
 
     // -- GRID STATE --
     const [sort, setSort] = useState<SortConfig>({ key: 'createdAt', direction: 'desc' });
     const [filters, setFilters] = useState<FilterConfig[]>([]);
-    const [visibleColumns, setVisibleColumns] = useState<string[]>(DEFAULT_COLUMNS);
+    const [visibleColumns, setVisibleColumns] = useState<string[]>(() => {
+        const stored = localStorage.getItem(COLUMNS_STORAGE_KEY);
+        return stored ? JSON.parse(stored) : DEFAULT_COLUMNS;
+    });
     const [pageSize, setPageSize] = useState(50);
     const [currentPage, setCurrentPage] = useState(1);
     const [searchTerm, setSearchTerm] = useState('');
+
+    // -- INLINE EDITING STATE --
+    const [editingCell, setEditingCell] = useState<{ id: string, field: string } | null>(null);
+    const [tempValue, setTempValue] = useState('');
 
     // -- UI STATE --
     const [isFilterOpen, setIsFilterOpen] = useState(false);
@@ -87,6 +97,11 @@ const RecruiterAccountsTab = ({ vendors, onAddVendor, onEditVendor, onDeleteVend
     const [isViewsOpen, setIsViewsOpen] = useState(false);
     const [savedViews, setSavedViews] = useState<SavedView[]>([]);
     const [currentViewName, setCurrentViewName] = useState('All Vendors');
+
+    // -- REFS FOR CLICK OUTSIDE --
+    const filterRef = useRef<HTMLDivElement>(null);
+    const columnsRef = useRef<HTMLDivElement>(null);
+    const viewsRef = useRef<HTMLDivElement>(null);
 
     // -- LOAD SAVED VIEWS --
     useEffect(() => {
@@ -98,6 +113,29 @@ const RecruiterAccountsTab = ({ vendors, onAddVendor, onEditVendor, onDeleteVend
                 console.error("Failed to parse saved views", e);
             }
         }
+    }, []);
+
+    // -- PERSIST COLUMNS --
+    useEffect(() => {
+        localStorage.setItem(COLUMNS_STORAGE_KEY, JSON.stringify(visibleColumns));
+    }, [visibleColumns]);
+
+    // -- CLICK OUTSIDE HANDLER --
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (filterRef.current && !filterRef.current.contains(event.target as Node)) {
+                setIsFilterOpen(false);
+            }
+            if (columnsRef.current && !columnsRef.current.contains(event.target as Node)) {
+                setIsColumnsOpen(false);
+            }
+            if (viewsRef.current && !viewsRef.current.contains(event.target as Node)) {
+                setIsViewsOpen(false);
+            }
+        };
+
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
 
     // -- HELPER: GET NESTED VALUE --
@@ -244,12 +282,96 @@ const RecruiterAccountsTab = ({ vendors, onAddVendor, onEditVendor, onDeleteVend
         setFilters(filters.map((f, i) => i === index ? { ...f, ...updates } : f));
     };
 
+    // -- INLINE SAVE LOGIC --
+    const handleInlineSave = async (id: string, field: string, value: any) => {
+        setEditingCell(null);
+
+        // Prepare update object
+        let updates: any = {};
+        if (field === 'city') {
+            updates = { address: { ...vendors.find(v => v.id === id)?.address, city: value } };
+        } else {
+            updates = { [field]: value };
+        }
+
+        // Parent callback for optimistic UI
+        onUpdateVendor(id, updates);
+
+        try {
+            await api.updateVendor(id, updates);
+        } catch (error) {
+            console.error("Inline save failed:", error);
+            alert("Save failed, reverting...");
+            // Parent should handle revert via re-fetch if needed
+        }
+    };
+
+    // -- EDITABLE CELL HELPER --
+    const EditableCell = ({ value, rowId, field, type = 'text', children, className = '' }: any) => {
+        const isEditing = editingCell?.id === rowId && editingCell?.field === field;
+
+        const startEditing = (e: React.MouseEvent) => {
+            e.stopPropagation();
+            setEditingCell({ id: rowId, field });
+            setTempValue(String(value || ''));
+        };
+
+        const onKeyDown = (e: React.KeyboardEvent) => {
+            if (e.key === 'Enter') handleInlineSave(rowId, field, tempValue);
+            if (e.key === 'Escape') setEditingCell(null);
+        };
+
+        if (isEditing) {
+            return (
+                <td className="px-4 py-3" onClick={e => e.stopPropagation()}>
+                    {field === 'status' ? (
+                        <select
+                            autoFocus
+                            className="w-full bg-white border border-indigo-400 rounded px-1 py-0.5 text-[12px] font-bold outline-none ring-2 ring-indigo-500/20"
+                            value={tempValue}
+                            onChange={e => setTempValue(e.target.value)}
+                            onBlur={() => handleInlineSave(rowId, field, tempValue)}
+                            onKeyDown={onKeyDown}
+                        >
+                            {['New', 'Lead', 'Contacted', 'Vetting', 'Active', 'Inactive', 'Outreach', 'Onboarding', 'Unresponsive', 'Rejected'].map(s => (
+                                <option key={s} value={s}>{s}</option>
+                            ))}
+                        </select>
+                    ) : (
+                        <input
+                            autoFocus
+                            className="w-full bg-white border border-indigo-400 rounded px-2 py-0.5 text-[12px] outline-none ring-2 ring-indigo-500/20"
+                            value={tempValue}
+                            onChange={e => setTempValue(e.target.value)}
+                            onBlur={() => handleInlineSave(rowId, field, tempValue)}
+                            onKeyDown={onKeyDown}
+                        />
+                    )}
+                </td>
+            );
+        }
+
+        return (
+            <td
+                className={`group/cell px-4 py-3 cursor-text hover:bg-slate-50/50 transition-colors ${className}`}
+                onDoubleClick={startEditing}
+            >
+                <div className="flex items-center justify-between gap-2">
+                    {children || <span className="truncate">{value || '-'}</span>}
+                    <div className="opacity-0 group-hover/cell:opacity-40 transition-opacity">
+                        <Edit size={10} className="text-slate-400" />
+                    </div>
+                </div>
+            </td>
+        );
+    };
+
     return (
         <div className="flex flex-col h-full bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden min-h-[600px]">
             {/* TOOLBAR */}
             <div className="p-3 border-b border-slate-200 bg-slate-50/50 flex flex-wrap items-center gap-3">
                 {/* View Switcher */}
-                <div className="relative">
+                <div className="relative" ref={viewsRef}>
                     <button
                         onClick={() => setIsViewsOpen(!isViewsOpen)}
                         className="flex items-center gap-2 px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-[13px] font-bold text-slate-700 hover:border-indigo-300 transition-all shadow-sm"
@@ -310,7 +432,7 @@ const RecruiterAccountsTab = ({ vendors, onAddVendor, onEditVendor, onDeleteVend
 
                 <div className="flex items-center gap-2 ml-auto">
                     {/* Columns Toggle */}
-                    <div className="relative">
+                    <div className="relative" ref={columnsRef}>
                         <button
                             onClick={() => setIsColumnsOpen(!isColumnsOpen)}
                             className="flex items-center gap-2 px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-[13px] font-bold text-slate-600 hover:bg-slate-50 transition-all"
@@ -338,7 +460,7 @@ const RecruiterAccountsTab = ({ vendors, onAddVendor, onEditVendor, onDeleteVend
                     </div>
 
                     {/* Filter Builder */}
-                    <div className="relative">
+                    <div className="relative" ref={filterRef}>
                         <button
                             onClick={() => setIsFilterOpen(!isFilterOpen)}
                             className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-[13px] font-bold transition-all ${filters.length > 0 ? 'bg-indigo-600 text-white shadow-indigo-200' : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'}`}
@@ -451,24 +573,50 @@ const RecruiterAccountsTab = ({ vendors, onAddVendor, onEditVendor, onDeleteVend
                                 onClick={() => navigate(`/account/${vendor.id}`)}
                             >
                                 {/* STICKY NAME CELL */}
-                                <td className="px-4 py-3 font-bold text-slate-900 text-[13px] sticky left-0 z-30 bg-white group-hover:bg-indigo-50/30 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.05)]">
-                                    {vendor.name}
-                                </td>
+                                <EditableCell
+                                    rowId={vendor.id}
+                                    field="name"
+                                    value={vendor.name}
+                                    className="font-bold text-slate-900 text-[13px] sticky left-0 z-30 bg-white group-hover:bg-indigo-50/30 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.05)]"
+                                >
+                                    <span
+                                        className="hover:underline cursor-pointer"
+                                        onClick={(e) => { e.stopPropagation(); navigate(`/account/${vendor.id}`); }}
+                                    >
+                                        {vendor.name}
+                                    </span>
+                                </EditableCell>
 
                                 {/* DYNAMIC CELLS */}
                                 {visibleColumns.filter(c => c !== 'name').map(colId => {
                                     const val = getFieldValue(vendor, colId);
 
-                                    return (
-                                        <td key={colId} className="px-4 py-3 text-[12px] text-slate-600">
-                                            {colId === 'status' ? (
-                                                <span className={`inline-flex items-center px-1.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest border ${vendor.status === 'Active' ? 'bg-emerald-50 text-emerald-700 border-emerald-100' :
+                                    // Use EditableCell for specific fields
+                                    if (['status', 'phone', 'city'].includes(colId)) {
+                                        return (
+                                            <EditableCell
+                                                key={colId}
+                                                rowId={vendor.id}
+                                                field={colId}
+                                                value={val}
+                                            >
+                                                {colId === 'status' ? (
+                                                    <span className={`inline-flex items-center px-1.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest border ${vendor.status === 'Active' ? 'bg-emerald-50 text-emerald-700 border-emerald-100' :
                                                         vendor.status === 'Outreach' ? 'bg-indigo-50 text-indigo-700 border-indigo-100' :
                                                             'bg-slate-50 text-slate-500 border-slate-100'
-                                                    }`}>
-                                                    {val || 'New'}
-                                                </span>
-                                            ) : colId === 'rating' ? (
+                                                        }`}>
+                                                        {val || 'New'}
+                                                    </span>
+                                                ) : (
+                                                    <span className="truncate max-w-[200px] block">{val || '-'}</span>
+                                                )}
+                                            </EditableCell>
+                                        );
+                                    }
+
+                                    return (
+                                        <td key={colId} className="px-4 py-3 text-[12px] text-slate-600">
+                                            {colId === 'rating' ? (
                                                 <div className="flex items-center gap-1 font-black text-slate-800">
                                                     {Number(val || 0).toFixed(1)}
                                                     <span className="text-amber-400">★</span>

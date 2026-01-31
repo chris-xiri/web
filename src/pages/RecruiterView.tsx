@@ -140,6 +140,13 @@ const RecruiterView = () => {
         }
     }, []);
 
+    const handleUpdateVendor = useCallback(async (id: string, updates: Partial<Account>) => {
+        // Optimistic Update
+        setVendors(prev => prev.map(v => v.id === id ? { ...v, ...updates } : v));
+        // api call is handled by the component for inline edits, but we can also handle it here if called from modal etc.
+        // For inline, the component calls 'api.updateVendor(id, updates)' AND 'onUpdateVendor(id, updates)'
+    }, []);
+
     const handleLaunchSequence = useCallback(async (id: string) => {
         // Optimistic Update
         setVendors(prev => prev.map(v => v.id === id ? { ...v, status: 'Outreach', outreach: { step: 1, nextEmailAt: new Date().toISOString() } } as any : v));
@@ -262,6 +269,7 @@ const RecruiterView = () => {
                             onEditVendor={handleEditVendor}
                             onDeleteVendor={handleDeleteVendor}
                             onUpdateStatus={handleUpdateStatus}
+                            onUpdateVendor={handleUpdateVendor}
                             onLaunchSequence={handleLaunchSequence}
                         />
                     </div>
