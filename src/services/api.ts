@@ -104,5 +104,36 @@ export const api = {
             headers: { 'Content-Type': 'application/json' },
         });
         return response.json();
+    },
+    getContacts: async (accountId?: string) => {
+        const url = accountId ? `${API_URL}/contacts?accountId=${accountId}` : `${API_URL}/contacts`;
+        const response = await fetch(url, {
+            method: 'GET',
+            headers: { 'Content-Type': 'application/json' },
+        });
+        return response.json();
+    },
+    createContact: async (data: any) => {
+        const response = await fetch(`${API_URL}/contacts`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data),
+        });
+        return response.json();
+    },
+    updateContact: async (id: string, updates: any) => {
+        const response = await fetch(`${API_URL}/contacts/${id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(updates),
+        });
+        return response.json();
+    },
+    deleteContact: async (id: string) => {
+        const response = await fetch(`${API_URL}/contacts/${id}`, {
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json' },
+        });
+        return response.json();
     }
 };

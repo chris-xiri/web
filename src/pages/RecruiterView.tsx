@@ -2,15 +2,17 @@ import { useState, useEffect, useCallback } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { api } from '../services/api';
 import { useAuth } from '../context/AuthContext';
-import { LayoutDashboard, List, Kanban, Search, X, Building2 } from 'lucide-react';
+import { LayoutDashboard, List, Kanban, Search, X, Building2, Users } from 'lucide-react';
 import LogoutButton from '../components/LogoutButton';
-import type { Account, Activity, RawLead } from '../types';
+import type { Account, Activity, RawLead, Contact } from '../types';
 import VendorModal from '../components/VendorModal';
+import ContactModal from '../components/ContactModal';
 
 // Extracted Components
 import RecruiterDashboardTab from '../components/recruiter/RecruiterDashboardTab';
 import RecruiterPipelineTab from '../components/recruiter/RecruiterPipelineTab';
 import RecruiterAccountsTab from '../components/recruiter/RecruiterAccountsTab';
+import RecruiterContactsTab from '../components/recruiter/RecruiterContactsTab';
 import RecruiterSearchTab from '../components/recruiter/RecruiterSearchTab';
 import LoadingBar from '../components/LoadingBar';
 
@@ -35,13 +37,17 @@ const RecruiterView = () => {
 
     // CRM Data State
     const [vendors, setVendors] = useState<Account[]>([]);
+    const [contacts, setContacts] = useState<Contact[]>([]);
     const [activities, setActivities] = useState<Activity[]>([]);
     const [loadingVendors, setLoadingVendors] = useState(false);
+    const [loadingContacts, setLoadingContacts] = useState(false);
     const [loadingActivities, setLoadingActivities] = useState(false);
 
     // Modal State
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingVendor, setEditingVendor] = useState<Account | undefined>(undefined);
+    const [isContactModalOpen, setIsContactModalOpen] = useState(false);
+    const [editingContact, setEditingContact] = useState<Contact | undefined>(undefined);
 
     // Search State
     const [location, setLocation] = useState('');
@@ -54,6 +60,7 @@ const RecruiterView = () => {
 
     useEffect(() => {
         fetchVendors();
+        fetchContacts();
         fetchActivities();
     }, []);
 
@@ -81,6 +88,19 @@ const RecruiterView = () => {
             console.error("Failed to fetch activities", error);
         }
         setLoadingActivities(false);
+    };
+
+    const fetchContacts = async () => {
+        setLoadingContacts(true);
+        try {
+            const res = await api.getContacts();
+            if (res.data) {
+                setContacts(res.data);
+            }
+        } catch (error) {
+            console.error("Failed to fetch contacts", error);
+        }
+        setLoadingContacts(false);
     };
 
     const handleScrape = useCallback(async () => {
@@ -208,6 +228,41 @@ const RecruiterView = () => {
         setView('accounts', status);
     }, []);
 
+    const handleAddContact = useCallback(() => {
+        setEditingContact(undefined);
+        setIsContactModalOpen(true);
+    }, []);
+
+    const handleSaveContact = async (data: Partial<Contact>) => {
+        try {
+            if (editingContact && editingContact.id) {
+                await api.updateContact(editingContact.id, data);
+            } else {
+                await api.createContact(data);
+            }
+            fetchContacts();
+            setIsContactModalOpen(false);
+        } catch (error) {
+            console.error("Failed to save contact", error);
+            alert("Failed to save contact");
+        }
+    };
+
+    const handleDeleteContact = useCallback(async (id: string, e: React.MouseEvent) => {
+        e.stopPropagation();
+        if (!window.confirm('Delete this contact?')) return;
+        try {
+            await api.deleteContact(id);
+            setContacts(prev => prev.filter(c => c.id !== id));
+        } catch (error) {
+            console.error(error);
+        }
+    }, []);
+
+    const handleUpdateContact = useCallback(async (id: string, updates: Partial<Contact>) => {
+        setContacts(prev => prev.map(c => c.id === id ? { ...c, ...updates } : c));
+    }, []);
+
     return (
         <div className="min-h-screen bg-slate-50 p-4 font-sans max-w-[1600px] mx-auto">
             <LoadingBar isLoading={loadingVendors || loadingActivities || loadingSearch || importing} />
@@ -235,6 +290,7 @@ const RecruiterView = () => {
                     { id: 'dashboard', icon: LayoutDashboard, label: 'Performance' },
                     { id: 'pipeline', icon: Kanban, label: 'Outreach' },
                     { id: 'accounts', icon: List, label: 'Directory' },
+                    { id: 'contacts', icon: Users, label: 'Interlocutors' },
                     { id: 'search', icon: Search, label: 'Hunter' }
                 ].map(tab => (
                     <button
@@ -274,6 +330,15 @@ const RecruiterView = () => {
                         />
                     </div>
                 )}
+                {activeView === 'contacts' && (
+                    <RecruiterContactsTab
+                        contacts={contacts}
+                        accounts={vendors}
+                        onAddContact={handleAddContact}
+                        onDeleteContact={handleDeleteContact}
+                        onUpdateContact={handleUpdateContact}
+                    />
+                )}
                 {activeView === 'search' && (
                     <RecruiterSearchTab
                         location={location}
@@ -295,6 +360,13 @@ const RecruiterView = () => {
             </div>
 
             <VendorModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} onSave={handleSaveVendor} initialData={editingVendor} />
+            <ContactModal
+                isOpen={isContactModalOpen}
+                onClose={() => setIsContactModalOpen(false)}
+                onSave={handleSaveContact}
+                accounts={vendors}
+                initialData={editingContact}
+            />
         </div>
     );
 };
