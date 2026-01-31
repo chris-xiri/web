@@ -165,6 +165,23 @@ const RecruiterView = () => {
         setIsModalOpen(true);
     }, []);
 
+    const handleDeleteVendor = useCallback(async (id: string, e: React.MouseEvent) => {
+        e.stopPropagation();
+        if (!window.confirm('Are you sure you want to delete this vendor and all associated activities? This action cannot be undone.')) {
+            return;
+        }
+
+        try {
+            await api.deleteVendor(id);
+            setVendors(prev => prev.filter(v => v.id !== id));
+            // No need to fetchVendors() if we update state optimistically/locally
+        } catch (error) {
+            console.error("Failed to delete vendor", error);
+            alert("Failed to delete vendor");
+            fetchVendors(); // Sync back
+        }
+    }, []);
+
     const handleSaveVendor = async (data: Partial<Account>) => {
         try {
             if (editingVendor && editingVendor.id) {
@@ -173,6 +190,7 @@ const RecruiterView = () => {
                 await api.createVendor(data);
             }
             fetchVendors();
+            setIsModalOpen(false);
         } catch (error) {
             console.error("Failed to save vendor", error);
             alert("Failed to save vendor");
@@ -242,6 +260,7 @@ const RecruiterView = () => {
                             vendors={statusFilter ? vendors.filter(v => v.status === statusFilter) : vendors}
                             onAddVendor={handleAddVendor}
                             onEditVendor={handleEditVendor}
+                            onDeleteVendor={handleDeleteVendor}
                             onUpdateStatus={handleUpdateStatus}
                             onLaunchSequence={handleLaunchSequence}
                         />

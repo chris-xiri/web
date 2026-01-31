@@ -50,6 +50,14 @@ export const api = {
         return response.json();
     },
 
+    deleteVendor: async (vendorId: string) => {
+        const response = await fetch(`${API_URL}/vendors/${vendorId}`, {
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json' },
+        });
+        return response.json();
+    },
+
     startOutreachSequence: async (vendorId: string) => {
         const response = await fetch(`${API_URL}/vendors/${vendorId}/start-sequence`, {
             method: 'POST',
