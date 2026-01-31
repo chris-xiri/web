@@ -3,9 +3,10 @@ import { useParams, useNavigate } from 'react-router-dom';
 import {
     Building2, MapPin, Globe, Phone, Mail,
     Users, Plus, MessageSquare, Clock, ArrowLeft,
-    CheckCircle2, AlertCircle, ShieldCheck
+    CheckCircle2, AlertCircle, ShieldCheck, Edit
 } from 'lucide-react';
 import { api } from '../services/api';
+import VendorModal from '../components/VendorModal';
 import type { Account, Contact, Activity } from '../types';
 
 const AccountDetailView = () => {
@@ -13,21 +14,36 @@ const AccountDetailView = () => {
     const navigate = useNavigate();
     const [account, setAccount] = useState<Account | null>(null);
     const [loading, setLoading] = useState(true);
+    const [isModalOpen, setIsModalOpen] = useState(false);
+
+    const fetchAccount = async () => {
+        if (!id) return;
+        setLoading(true);
+        try {
+            const res = await api.getVendors('vendor');
+            const found = res.data?.find((a: Account) => a.id === id);
+            if (found) setAccount(found);
+        } catch (err) {
+            console.error(err);
+        }
+        setLoading(false);
+    };
 
     useEffect(() => {
-        const fetchAccount = async () => {
-            if (!id) return;
-            try {
-                const res = await api.getVendors('vendor');
-                const found = res.data?.find((a: Account) => a.id === id);
-                if (found) setAccount(found);
-            } catch (err) {
-                console.error(err);
-            }
-            setLoading(false);
-        };
         fetchAccount();
     }, [id]);
+
+    const handleSave = async (data: Partial<Account>) => {
+        if (!id) return;
+        try {
+            await api.updateVendor(id, data);
+            await fetchAccount();
+            setIsModalOpen(false);
+        } catch (error) {
+            console.error("Failed to update account", error);
+            alert("Failed to update account");
+        }
+    };
 
     if (loading) return <div className="flex h-screen items-center justify-center"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-slate-800"></div></div>;
     if (!account) return <div className="p-8 text-center text-slate-500">Account not found</div>;
@@ -72,9 +88,17 @@ const AccountDetailView = () => {
                             </div>
                         </div>
                     </div>
-                    <div className="text-right">
-                        <div className="text-xl font-black text-slate-900 leading-tight">{account?.rating?.toFixed(1) || '-'}</div>
-                        <div className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Quality score</div>
+                    <div className="flex gap-4 items-center">
+                        <button
+                            onClick={() => setIsModalOpen(true)}
+                            className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg text-[11px] font-black uppercase tracking-widest hover:bg-indigo-700 transition-all shadow-md shadow-indigo-100"
+                        >
+                            <Edit size={14} /> Edit Profile
+                        </button>
+                        <div className="text-right">
+                            <div className="text-xl font-black text-slate-900 leading-tight">{account?.rating?.toFixed(1) || '-'}</div>
+                            <div className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Quality score</div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -190,6 +214,13 @@ const AccountDetailView = () => {
                     </div>
                 </div>
             </div>
+
+            <VendorModal
+                isOpen={isModalOpen}
+                onClose={() => setIsModalOpen(false)}
+                onSave={handleSave}
+                initialData={account || undefined}
+            />
         </div>
     );
 };
