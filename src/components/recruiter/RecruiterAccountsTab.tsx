@@ -288,8 +288,8 @@ const RecruiterAccountsTab = ({ vendors, onAddVendor, onEditVendor, onDeleteVend
 
         // Prepare update object
         let updates: any = {};
-        if (field === 'city') {
-            updates = { address: { ...vendors.find(v => v.id === id)?.address, city: value } };
+        if (field === 'city' || field === 'zipCode') {
+            updates = { address: { ...vendors.find(v => v.id === id)?.address, [field]: value } };
         } else {
             updates = { [field]: value };
         }
@@ -591,7 +591,7 @@ const RecruiterAccountsTab = ({ vendors, onAddVendor, onEditVendor, onDeleteVend
                                     const val = getFieldValue(vendor, colId);
 
                                     // Use EditableCell for specific fields
-                                    if (['status', 'phone', 'city'].includes(colId)) {
+                                    if (['status', 'phone', 'city', 'email', 'website', 'zipCode'].includes(colId)) {
                                         return (
                                             <EditableCell
                                                 key={colId}
